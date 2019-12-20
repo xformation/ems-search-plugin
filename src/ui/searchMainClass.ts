@@ -1,4 +1,4 @@
-import init from '../domain/application/studentSearchApp';
+import init from '../domain/application/searchApp';
 
 
 export class SearchMainClass {
