@@ -105,6 +105,15 @@ export class SearchPage extends React.Component<any, any> {
               <div className="students-heading">
                 <h3>Students</h3>
               </div>
+              <div className="students-heading">
+                <h3>Teachers</h3>
+              </div>
+              <div className="students-heading">
+                <h3>Subjects</h3>
+              </div>
+              <div className="students-heading">
+                <h3>Content</h3>
+              </div>
               <div className="bg-white students-inner">
                 <div className="w-75">
                   <div className="button-section">
@@ -126,7 +135,7 @@ export class SearchPage extends React.Component<any, any> {
                         <div className="col-xs-12 col-md-6 left">
                           <input type="checkbox" className="checkbox" />
                           <ul>
-                            <li><i className="fa fa-trash"></i></li>
+                            <li><i className="fa fa-refresh"></i></li>
                             <li><i className="fa fa-envelope"></i></li>
                             <li><i className="fa fa-trash"></i></li>
                             <li><i className="fa fa-print"></i></li>
