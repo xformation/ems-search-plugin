@@ -23,10 +23,31 @@
   "includes": [
     {
       "type": "page",
-      "name": "Home",
+      "name": "Students",
       "addToNav": true,
       "defaultNav": true,
-      "component": "SearchMainClass"
+      "component": "StudentSearchMainClass"
+    },
+    {
+      "type": "page",
+      "name": "Teachers",
+      "addToNav": true,
+      "defaultNav": true,
+      "component": "TeacherSearchMainClass"
+    },
+    {
+      "type": "page",
+      "name": "Staffs",
+      "addToNav": true,
+      "defaultNav": true,
+      "component": "StaffSearchMainClass"
+    },
+    {
+      "type": "page",
+      "name": "Vehicles",
+      "addToNav": true,
+      "defaultNav": true,
+      "component": "VehicleSearchMainClass"
     }
   ],
   "dependencies": {

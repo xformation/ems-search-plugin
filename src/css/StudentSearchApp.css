@@ -1,5 +1,7 @@
 .filters-box{
     padding: 15px;
+    margin-bottom: 20px;
+    height: 100%;
 }
 .heading{
     display: block;
@@ -20,7 +22,6 @@
 }
 .filters-btn .clear-btn,
 .filters-btn .apply-btn{
-    display: inline-block;
     cursor: pointer;
     font-size: 11px;
     font-weight: 300;
@@ -28,7 +29,10 @@
     width: 70px;
     margin-right: 5px;
     padding: 5px 0;
+    margin-bottom: 5px;
+    float: left;
 }
+ 
 .filters-btn .apply-btn{
     margin-right: 0px;
 }
@@ -49,6 +53,7 @@
     text-transform: uppercase;
     margin-bottom: 5px;
     display: block;
+    margin-top: 20px;
 }
 .filterbox .box .rainge{
     display: block;
@@ -56,10 +61,11 @@
 .filterbox .min-box,
 .filterbox .mix-box{
     display: inline-block;
-    margin-right: 15px;
+    margin-right: 5px;
 }
 .filterbox .mix-box{
     margin-right: 0;
+    margin-top: 5px;
 }
 .filterbox .min-box label,
 .filterbox .mix-box label{
@@ -105,10 +111,11 @@
     width: 100%;
     border: 1px solid #dddddd;
 }
-.students-inner .w-75{
+.students-inner .w-100{
     float: left;
-    width: 75%;
+    width: 100% !important;
 }
+
 .button-section{
     margin-bottom: 15px;
     float: left;
@@ -126,6 +133,7 @@
     box-shadow: none;
     font-weight: 300;
     font-size: 14px;
+    margin-bottom: 10px;
 }
 .button-section input.input{
     font-style: italic;
@@ -139,11 +147,13 @@
 .students-table .top-head{
     background-color: #3697ef;
     padding: 5px 15px;
+    
 }
 .students-table .top-head .left ul{
     display: inline-block;
     list-style: none;
     vertical-align: top;
+
 }
 .students-table .top-head .left ul li{
     display: inline-block;
@@ -162,7 +172,7 @@
     display: inline-block;
     color: #ffffff;
     font-size: 12px;
-    padding-left: 10px;
+    padding-left: 8px;
     line-height: 18px;
     vertical-align: top;
 }
@@ -175,7 +185,7 @@
 .main-contant-row{
     float: left;
     width: 100%;
-    padding: 10px;
+    padding: 15px;
 }
 .contant-row{
     float: left;
@@ -186,8 +196,15 @@
 }
 .image-check input.checkbox{
     display: inline-block;
-    vertical-align: middle;
+    vertical-align: top;
     margin-top: 20px;
+    
+}
+.top-head input.checkbox{
+    
+    display: inline-block;
+    margin-top: 0px;
+    margin-left: 0px;
 }
 .image-check span{
     display: inline-block;
@@ -195,19 +212,20 @@
     height: 50px;
     background-color: #dddddd;
     border-radius: 50%;
-    vertical-align: top;
-    margin-left: 10px;
+    vertical-align: top;  
+    margin-left: 15px; 
 }
+
 .name-contant .name{
     float: left;
     width: 100%;
     padding-bottom: 5px;
 }
 .name-contant .name a{
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     color: #3697ef;
-    line-height: 18px;
+    line-height: 20px;
 }
 .name-contant .admission_no{
     float: left;
@@ -223,20 +241,23 @@
 .name-contant .admission_no span{
     display: inline-block;
     font-weight: 400;
-    font-size: 9px;
-    line-height: 14px;
+    font-size: 12px;
+    line-height: 16px;
     color: #3697ef;
     vertical-align: top;
 }
 .name-contant .admission_no p{
     display: inline-block;
     font-weight: 400;
-    font-size: 9px;
-    line-height: 14px;
+    font-size: 12px;
+    line-height: 16px;
     color: #000000;
     padding: 0 0 0 5px;
     margin: 0;
     vertical-align: top;
+}
+.right-button{
+    float: right;
 }
 .right-button ul{
     text-align: right;
@@ -254,4 +275,18 @@
     padding-right: 10px;
     margin-bottom: 0;
     cursor: pointer;
+}
+
+@media screen and (min-width: 768px) and (max-width: 980px)  {
+    .clear-btn {
+        margin-right: 0px;
+    }
+    .image-check input.checkbox{
+        margin-top: 13px;
+    }
+    .image-check span{
+        width: 40px;
+        height: 40px;
+        margin-left: 5px;
+    }
 }
