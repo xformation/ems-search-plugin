@@ -46,7 +46,7 @@ export class StudentSearchPage extends React.Component<any, any> {
                                             </select>
                                         </div>
                                         <div className="mix-box">
-                                            <label>Mix</label>
+                                            <label>Max</label>
                                             <select>
                                                 <option>6</option>
                                                 <option>7</option>
@@ -71,7 +71,7 @@ export class StudentSearchPage extends React.Component<any, any> {
                                             </select>
                                         </div>
                                         <div className="mix-box">
-                                            <label>Mix</label>
+                                            <label>Max</label>
                                             <select>
                                                 <option>6</option>
                                                 <option>7</option>
@@ -96,7 +96,7 @@ export class StudentSearchPage extends React.Component<any, any> {
                                             </select>
                                         </div>
                                         <div className="mix-box">
-                                            <label>Mix</label>
+                                            <label>Max</label>
                                             <select>
                                                 <option>6</option>
                                                 <option>7</option>
