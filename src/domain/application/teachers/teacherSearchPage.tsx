@@ -17,7 +17,11 @@ export class TeacherSearchPage extends React.Component<any, any> {
                 max: ""
             },
             isApiCalled: false,
-            isCollapsed: false
+            isCollapsed: false,
+            visiting: "0",
+            permanent: "0",
+            fulltime: "0",
+            parttime: "0"
         };
 
         this.onClickApply = this.onClickApply.bind(this);
@@ -25,12 +29,15 @@ export class TeacherSearchPage extends React.Component<any, any> {
         this.onPassingChange = this.onPassingChange.bind(this);
         this.onSubjectsChange = this.onSubjectsChange.bind(this);
         this.toggleCollapse = this.toggleCollapse.bind(this);
+        this.onChangeCheckbox = this.onChangeCheckbox.bind(this);
     }
+
     toggleCollapse() {
         this.setState({
             isCollapsed: !this.state.isCollapsed
         });
     }
+
     onPassingChange(e: any) {
         const { name, value } = e.target;
         const { passing } = this.state;
@@ -43,6 +50,7 @@ export class TeacherSearchPage extends React.Component<any, any> {
             passing: passing
         });
     }
+
     onSubjectsChange(e: any) {
         const { name, value } = e.target;
         const { subjects } = this.state;
@@ -55,6 +63,7 @@ export class TeacherSearchPage extends React.Component<any, any> {
             subjects: subjects
         });
     }
+
     onClickApply() {
         const { passing, subjects } = this.state;
         if ((passing.min && passing.max) || (subjects.min && subjects.max)) {
@@ -87,6 +96,7 @@ export class TeacherSearchPage extends React.Component<any, any> {
             );
         }
     }
+
     onClickClear() {
         this.setState({
             passing: {
@@ -100,6 +110,12 @@ export class TeacherSearchPage extends React.Component<any, any> {
         });
     }
 
+    onChangeCheckbox(e: any){
+        const {name, checked} = e.target;
+        this.setState({
+            [name]: checked ? "1" : "0"
+        });
+    }
 
     render() {
         const state = this.state;
@@ -174,10 +190,10 @@ export class TeacherSearchPage extends React.Component<any, any> {
                                     <h4 onClick={this.toggleCollapse} className="toggle">Type of Faculty <i className={"fa " + (this.state.isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up')}></i></h4>
                                     <div className={"rainge " + (this.state.isCollapsed ? 'active' : '')}>
                                         <ul>
-                                            <li>Visiting <input type="checkbox" className="checkbox" /></li>
-                                            <li>Permanent <input type="checkbox" className="checkbox" /></li>
-                                            <li>Fulltime <input type="checkbox" className="checkbox" /></li>
-                                            <li>Parttime <input type="checkbox" className="checkbox" /></li>
+                                            <li>Visiting <input type="checkbox" name="visiting" className="checkbox" onChange={this.onChangeCheckbox} checked={state.visiting === "1"}/></li>
+                                            <li>Permanent <input type="checkbox" className="checkbox" name="permanent" onChange={this.onChangeCheckbox} checked={state.permanent === "1"}/></li>
+                                            <li>Fulltime <input type="checkbox" className="checkbox" name="fulltime" onChange={this.onChangeCheckbox} checked={state.fulltime === "1"}/></li>
+                                            <li>Parttime <input type="checkbox" className="checkbox" name="parttime" onChange={this.onChangeCheckbox} checked={state.parttime === "1"}/></li>
                                         </ul>
                                     </div>
                                 </div>
