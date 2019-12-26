@@ -87,9 +87,10 @@
 .filterbox .min-box select,
 .filterbox .mix-box select{
     display: inline-block;
-    width: 40px;
+    width: 45px;
     height: 18px;
     border: 1px solid #dddddd;
+    font-size: 11px;
     line-height: 18px;
 }
 .filterbox .box .rainge ul{

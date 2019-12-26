@@ -2,23 +2,107 @@ import * as React from 'react';
 // import { graphql, QueryProps, MutationFunc, compose } from 'react-apollo';
 // import {TabContent, TabPane, Nav, NavItem, NavLink} from 'reactstrap';
 import "../../../css/studentSearchApp.css";
+import { teacherServices } from '../_services/teachers.service';
 
 export class TeacherSearchPage extends React.Component<any, any> {
     constructor(props: any) {
         super(props);
         this.state = {
+            passing: {
+                min: "",
+                max: ""
+            },
+            subjects: {
+                min: "",
+                max: ""
+            },
+            isApiCalled: false,
             isCollapsed: false
         };
+
+        this.onClickApply = this.onClickApply.bind(this);
+        this.onClickClear = this.onClickClear.bind(this);
+        this.onPassingChange = this.onPassingChange.bind(this);
+        this.onSubjectsChange = this.onSubjectsChange.bind(this);
         this.toggleCollapse = this.toggleCollapse.bind(this);
     }
-
-    toggleCollapse(){
+    toggleCollapse() {
         this.setState({
             isCollapsed: !this.state.isCollapsed
         });
     }
+    onPassingChange(e: any) {
+        const { name, value } = e.target;
+        const { passing } = this.state;
+        if (name === "min-passing") {
+            passing.min = value;
+        } else {
+            passing.max = value;
+        }
+        this.setState({
+            passing: passing
+        });
+    }
+    onSubjectsChange(e: any) {
+        const { name, value } = e.target;
+        const { subjects } = this.state;
+        if (name === "min-subjects") {
+            subjects.min = value;
+        } else {
+            subjects.max = value;
+        }
+        this.setState({
+            subjects: subjects
+        });
+    }
+    onClickApply() {
+        const { passing, subjects } = this.state;
+        if ((passing.min && passing.max) || (subjects.min && subjects.max)) {
+            let data: any = {
+                filters: []
+            };
+            let sendData: any = {};
+            if (passing.min && passing.max) {
+                sendData.passing = passing.min + "-" + passing.max;
+            }
+            if (subjects.min && subjects.max) {
+                sendData.subjects = subjects.min + "-" + subjects.max;
+            }
+            data.filters.push(sendData);
+            this.setState({
+                isApiCalled: true
+            });
+            teacherServices.searchTeacher("filters=" + JSON.stringify(data)).then(
+                (response: any) => {
+                    console.log(response);
+                    this.setState({
+                        isApiCalled: false
+                    });
+                },
+                error => {
+                    this.setState({
+                        isApiCalled: false
+                    });
+                }
+            );
+        }
+    }
+    onClickClear() {
+        this.setState({
+            passing: {
+                min: "",
+                max: ""
+            },
+            subjects: {
+                min: "",
+                max: ""
+            }
+        });
+    }
+
 
     render() {
+        const state = this.state;
         return (
             <section className="container-fluid">
                 <div className="row">
@@ -28,8 +112,8 @@ export class TeacherSearchPage extends React.Component<any, any> {
                                 <h5>Filters</h5>
                             </div>
                             <div className="filters-btn">
-                                <button className="btn btn-secondary clear-btn">Clear</button>
-                                <button className="btn btn-secondary apply-btn">Apply</button>
+                                <button className="btn btn-secondary clear-btn" onClick={this.onClickClear} disabled={state.isApiCalled}>Clear</button>
+                                <button className="btn btn-secondary apply-btn" onClick={this.onClickApply} disabled={state.isApiCalled}>Apply</button>
                             </div>
                             <div className="filterbox">
                                 <div className="box">
@@ -37,7 +121,8 @@ export class TeacherSearchPage extends React.Component<any, any> {
                                     <div className="rainge">
                                         <div className="min-box">
                                             <label>Min</label>
-                                            <select>
+                                            <select name="min-passing" onChange={this.onPassingChange} value={state.passing.min}>
+                                                <option value="">Min</option>
                                                 <option>1</option>
                                                 <option>2</option>
                                                 <option>3</option>
@@ -47,7 +132,8 @@ export class TeacherSearchPage extends React.Component<any, any> {
                                         </div>
                                         <div className="mix-box">
                                             <label>Max</label>
-                                            <select>
+                                            <select name="max-passing" onChange={this.onPassingChange} value={state.passing.max}>
+                                                <option value="">Max</option>
                                                 <option>6</option>
                                                 <option>7</option>
                                                 <option>8</option>
@@ -62,7 +148,8 @@ export class TeacherSearchPage extends React.Component<any, any> {
                                     <div className="rainge">
                                         <div className="min-box">
                                             <label>Min</label>
-                                            <select>
+                                            <select name="min-subjects" onChange={this.onSubjectsChange} value={state.subjects.min}>
+                                                <option value="">Min</option>
                                                 <option>1</option>
                                                 <option>2</option>
                                                 <option>3</option>
@@ -72,7 +159,8 @@ export class TeacherSearchPage extends React.Component<any, any> {
                                         </div>
                                         <div className="mix-box">
                                             <label>Max</label>
-                                            <select>
+                                            <select name="max-subjects" onChange={this.onSubjectsChange} value={state.subjects.max}>
+                                                <option value="">Max</option>
                                                 <option>6</option>
                                                 <option>7</option>
                                                 <option>8</option>
@@ -149,7 +237,7 @@ export class TeacherSearchPage extends React.Component<any, any> {
                                                         <input type="checkbox" className="checkbox" />
                                                         <span><img src="../../img/uicon_m.png" alt="" /></span>
                                                     </div>
-                                                    
+
                                                     <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
                                                         <div className="name"><a href="#">Teacher 1</a></div>
                                                         <div className="row admission-contant">

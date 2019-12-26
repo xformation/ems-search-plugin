@@ -7,18 +7,119 @@ import { studentServices } from '../_services/students.service';
 export class StudentSearchPage extends React.Component<any, any> {
     constructor(props: any) {
         super(props);
-        this.applyOnClick = this.applyOnClick.bind(this);
+        this.state = {
+            attendance: {
+                min: "",
+                max: ""
+            },
+            grades: {
+                min: "",
+                max: ""
+            },
+            aggregate: {
+                min: "",
+                max: ""
+            },
+            isApiCalled: false
+        };
+        this.onClickApply = this.onClickApply.bind(this);
+        this.onClickClear = this.onClickClear.bind(this);
+        this.onAttendaceChange = this.onAttendaceChange.bind(this);
+        this.onGradesChange = this.onGradesChange.bind(this);
+        this.onAggregateChange = this.onAggregateChange.bind(this);
+
     }
-    
-    applyOnClick(){
-        studentServices.saveStudent({}).then(
-            response => {
-                console.log(response);
+
+    onAttendaceChange(e: any) {
+        const { name, value } = e.target;
+        const { attendance } = this.state;
+        if (name === "min-attendance") {
+            attendance.min = value;
+        } else {
+            attendance.max = value;
+        }
+        this.setState({
+            attendance: attendance
+        });
+    }
+    onGradesChange(e: any) {
+        const { name, value } = e.target;
+        const { grades } = this.state;
+        if (name === "min-grades") {
+            grades.min = value;
+        } else {
+            grades.max = value;
+        }
+        this.setState({
+            grades: grades
+        });
+    }
+    onAggregateChange(e: any) {
+        const { name, value } = e.target;
+        const { aggregate } = this.state;
+        if (name === "min-aggregate") {
+            aggregate.min = value;
+        } else {
+            aggregate.max = value;
+        }
+        this.setState({
+            aggregate: aggregate
+        });
+    }
+    onClickApply() {
+        const { attendance, grades, aggregate } = this.state;
+        if ((attendance.min && attendance.max) || (grades.min && grades.max) || (aggregate.min && aggregate.max)) {
+            let data: any = {
+                filters: []
+            };
+            let sendData: any = {};
+            if (attendance.min && attendance.max) {
+                sendData.attendance = attendance.min + "-" + attendance.max;
             }
-        );
+            if (grades.min && grades.max) {
+                sendData.grades = grades.min + "-" + grades.max;
+            }
+            if (aggregate.min && aggregate.max) {
+                sendData.aggregate = aggregate.min + "-" + aggregate.max;
+            }
+            data.filters.push(sendData);
+            this.setState({
+                isApiCalled: true
+            });
+            studentServices.searchStuent("filters=" + JSON.stringify(data)).then(
+                (response: any) => {
+                    console.log(response);
+                    this.setState({
+                        isApiCalled: false
+                    });
+                },
+                error => {
+                    this.setState({
+                        isApiCalled: false
+                    });
+                }
+            );
+        }
+    }
+    onClickClear() {
+        this.setState({
+            attendance:{
+                min: "",
+                max: ""
+            },
+            grades: {
+                min: "",
+                max: ""
+            },
+            aggregate: {
+                min: "",
+                max: ""
+            }
+        });
     }
 
     render() {
+        const state = this.state;
         return (
             <section className="container-fluid">
                 <div className="row">
@@ -28,8 +129,8 @@ export class StudentSearchPage extends React.Component<any, any> {
                                 <h5>Filters</h5>
                             </div>
                             <div className="filters-btn">
-                                <button className="btn btn-secondary clear-btn">Clear</button>
-                                <button className="btn btn-secondary apply-btn">Apply</button>
+                                <button className="btn btn-secondary clear-btn" onClick={this.onClickClear} disabled={state.isApiCalled}>Clear</button>
+                                <button className="btn btn-secondary apply-btn" onClick={this.onClickApply} disabled={state.isApiCalled}>Apply</button>
                             </div>
                             <div className="filterbox">
                                 <div className="box">
@@ -37,22 +138,24 @@ export class StudentSearchPage extends React.Component<any, any> {
                                     <div className="rainge">
                                         <div className="min-box">
                                             <label>Min</label>
-                                            <select>
-                                                <option>1</option>
-                                                <option>2</option>
-                                                <option>3</option>
-                                                <option>4</option>
-                                                <option>5</option>
+                                            <select name="min-attendance" onChange={this.onAttendaceChange} value={state.attendance.min}>
+                                                <option value="">Min</option>
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5</option>
                                             </select>
                                         </div>
                                         <div className="mix-box">
                                             <label>Max</label>
-                                            <select>
-                                                <option>6</option>
-                                                <option>7</option>
-                                                <option>8</option>
-                                                <option>9</option>
-                                                <option>10</option>
+                                            <select name="max-attendance" onChange={this.onAttendaceChange} value={state.attendance.max}>
+                                                <option value="">Max</option>
+                                                <option value="6">6</option>
+                                                <option value="7">7</option>
+                                                <option value="8">8</option>
+                                                <option value="9">9</option>
+                                                <option value="10">10</option>
                                             </select>
                                         </div>
                                     </div>
@@ -62,22 +165,24 @@ export class StudentSearchPage extends React.Component<any, any> {
                                     <div className="rainge">
                                         <div className="min-box">
                                             <label>Min</label>
-                                            <select>
-                                                <option>1</option>
-                                                <option>2</option>
-                                                <option>3</option>
-                                                <option>4</option>
-                                                <option>5</option>
+                                            <select name="min-grades" onChange={this.onGradesChange} value={state.grades.min}>
+                                                <option value="">Min</option>
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5</option>
                                             </select>
                                         </div>
                                         <div className="mix-box">
                                             <label>Max</label>
-                                            <select>
-                                                <option>6</option>
-                                                <option>7</option>
-                                                <option>8</option>
-                                                <option>9</option>
-                                                <option>10</option>
+                                            <select name="max-grades" onChange={this.onGradesChange} value={state.grades.max}>
+                                                <option value="">Max</option>
+                                                <option value="6">6</option>
+                                                <option value="7">7</option>
+                                                <option value="8">8</option>
+                                                <option value="9">9</option>
+                                                <option value="10">10</option>
                                             </select>
                                         </div>
                                     </div>
@@ -87,22 +192,24 @@ export class StudentSearchPage extends React.Component<any, any> {
                                     <div className="rainge">
                                         <div className="min-box">
                                             <label>Min</label>
-                                            <select>
-                                                <option>1</option>
-                                                <option>2</option>
-                                                <option>3</option>
-                                                <option>4</option>
-                                                <option>5</option>
+                                            <select name="min-aggregate" onChange={this.onAggregateChange} value={state.aggregate.min}>
+                                                <option value="">Min</option>
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5</option>
                                             </select>
                                         </div>
                                         <div className="mix-box">
                                             <label>Max</label>
-                                            <select>
-                                                <option>6</option>
-                                                <option>7</option>
-                                                <option>8</option>
-                                                <option>9</option>
-                                                <option>10</option>
+                                            <select name="max-aggregate" onChange={this.onAggregateChange} value={state.aggregate.max}>
+                                                <option value="">Max</option>
+                                                <option value="6">6</option>
+                                                <option value="7">7</option>
+                                                <option value="8">8</option>
+                                                <option value="9">9</option>
+                                                <option value="10">10</option>
                                             </select>
                                         </div>
                                     </div>
@@ -163,7 +270,7 @@ export class StudentSearchPage extends React.Component<any, any> {
                                                         <input type="checkbox" className="checkbox" />
                                                         <span><img src="../../img/uicon_m.png" alt="" /></span>
                                                     </div>
-                                                    
+
                                                     <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
                                                         <div className="name"><a href="#">Jeremy Andrew Rose</a></div>
                                                         <div className="row admission-contant">

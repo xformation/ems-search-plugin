@@ -1,12 +1,12 @@
 import { config } from '../config';
 import { commonFunctions } from '../_utilites/common.functions';
 
-export const studentServices = {
-    searchStuent,
+export const teacherServices = {
+    searchTeacher,
 }
 
-function searchStuent(data: any) {
+function searchTeacher(data: any) {
     const requestOptions = commonFunctions.getRequestOptions("GET", {});
-    return fetch(config.STUDENT_SEARCH_URL + "?cls=com.synectiks.cms.entities.Student&" + data, requestOptions)
+    return fetch(config.TEACHER_SEARCH_URL + "?cls=com.synectiks.cms.entities.Teacher&" + data, requestOptions)
         .then(response => response.json());
 }
