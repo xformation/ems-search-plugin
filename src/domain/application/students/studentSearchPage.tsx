@@ -4,6 +4,7 @@ import * as React from 'react';
 import "../../../css/studentSearchApp.css";
 import { studentServices } from '../_services/students.service';
 
+
 export class StudentSearchPage extends React.Component<any, any> {
     constructor(props: any) {
         super(props);
@@ -20,14 +21,47 @@ export class StudentSearchPage extends React.Component<any, any> {
                 min: "",
                 max: ""
             },
-            isApiCalled: false
+            isApiCalled: false,
+            studentsData: [],
+            itemsPerPage: 5,
+            totalPages: 1,
+            currentPage: 0
         };
         this.onClickApply = this.onClickApply.bind(this);
         this.onClickClear = this.onClickClear.bind(this);
         this.onAttendaceChange = this.onAttendaceChange.bind(this);
         this.onGradesChange = this.onGradesChange.bind(this);
         this.onAggregateChange = this.onAggregateChange.bind(this);
+        this.componentDidMount = this.componentDidMount.bind(this);
+        this.createStudentJSX = this.createStudentJSX.bind(this);
+        this.createPaginationJSX = this.createPaginationJSX.bind(this);
+        this.onClickPrev = this.onClickPrev.bind(this);
+        this.onClickNext = this.onClickNext.bind(this);
+    }
 
+    componentDidMount() {
+        this.setState({
+            isApiCalled: true
+        });
+        studentServices.searchGetAllStuent().then(
+            (response: any) => {
+                const { itemsPerPage } = this.state;
+                this.setState({
+                    studentsData: response
+                });
+                if (response && response.length > 0) {
+                    let totalPages = Math.ceil(response.length / itemsPerPage);
+                    this.setState({
+                        totalPages: totalPages
+                    })
+                }
+            },
+            error => {
+                this.setState({
+                    isApiCalled: false
+                });
+            }
+        );
     }
 
     onAttendaceChange(e: any) {
@@ -42,6 +76,7 @@ export class StudentSearchPage extends React.Component<any, any> {
             attendance: attendance
         });
     }
+
     onGradesChange(e: any) {
         const { name, value } = e.target;
         const { grades } = this.state;
@@ -54,6 +89,7 @@ export class StudentSearchPage extends React.Component<any, any> {
             grades: grades
         });
     }
+
     onAggregateChange(e: any) {
         const { name, value } = e.target;
         const { aggregate } = this.state;
@@ -66,6 +102,7 @@ export class StudentSearchPage extends React.Component<any, any> {
             aggregate: aggregate
         });
     }
+
     onClickApply() {
         const { attendance, grades, aggregate } = this.state;
         if ((attendance.min && attendance.max) || (grades.min && grades.max) || (aggregate.min && aggregate.max)) {
@@ -101,9 +138,10 @@ export class StudentSearchPage extends React.Component<any, any> {
             );
         }
     }
+
     onClickClear() {
         this.setState({
-            attendance:{
+            attendance: {
                 min: "",
                 max: ""
             },
@@ -116,6 +154,120 @@ export class StudentSearchPage extends React.Component<any, any> {
                 max: ""
             }
         });
+    }
+
+    createStudentJSX() {
+        const { studentsData, isApiCalled, currentPage, itemsPerPage } = this.state;
+        let retData = [];
+        const length = studentsData.length;
+        if (length > 0) {
+            for (let i = 0; i < length; i++) {
+                const student = studentsData[i];
+                const pageFactor = Math.floor(i / itemsPerPage);
+                if (pageFactor === currentPage) {
+                    retData.push(
+                        <div className="contant-row">
+                            <div className="row">
+                                <div className="col-xs-6 col-sm-6 col-md-2 image-check">
+                                    <input type="checkbox" className="checkbox" />
+                                    <span><img src="public/plugins/cms-ui-search-plugin/img/students.png" alt="" /></span>
+                                </div>
+                                <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
+                                    <div className="name">{student.studentName} {student.studentMiddleName} {student.studentLastName}</div>
+                                    <div className="row admission-contant">
+                                        <div className="col-12 col-md-4">
+                                            <div className="admission_no">
+                                                <span>Admission No:</span>
+                                                <p>{student.id}</p>
+                                            </div>
+                                            <div className="admission_no">
+                                                <span>Student Id:</span>
+                                                <p>{student.id}</p>
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-md-4">
+                                            <div className="admission_no">
+                                                <span>Roll No:</span>
+                                                <p>{student.id}</p>
+                                            </div>
+                                            <div className="admission_no">
+                                                <span>Department</span>
+                                                <p>{student.department.name}</p>
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-md-4">
+                                            <div className="admission_no">
+                                                <span>Class:</span>
+                                                <p>{student.batch.batch}</p>
+                                            </div>
+                                            <div className="admission_no">
+                                                <span>Section:</span>
+                                                <p>{student.section.section}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="col-xs-6 col-sm-12 col-md-3 right-button">
+                                    <ul>
+                                        <li><i className="fa fa-envelope"></i></li>
+                                        <li><i className="fa fa-trash"></i></li>
+                                        <li><i className="fa fa-print"></i></li>
+                                        <li><i className="fa fa-cloud-download"></i></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+                
+            }
+        }else if(isApiCalled){
+            retData.push(
+                <div className="text-cetner loading_img">
+                    <img src="public/plugins/cms-ui-search-plugin/img/loader.gif" alt="Loader" />
+                </div>
+            );
+        } else {
+            retData.push(
+                <div className="text-center">There is no student.</div>
+            );
+        }
+        return retData;
+    }
+
+    changeCurrentPage(currentPage: any){
+        this.setState({
+            currentPage: currentPage
+        });
+    }
+
+    createPaginationJSX() {
+        const {totalPages, currentPage} = this.state;
+        let retData = [];
+            for (let i = 0; i < totalPages; i++) {
+                retData.push(
+                    <li className={(currentPage === i ? ' active' : '')}><a href="#" onClick={e => this.changeCurrentPage(i)}>{i + 1}</a></li>
+                )
+            }
+        return retData;
+    }
+
+    onClickPrev() {
+        const {currentPage} = this.state;
+        if(currentPage - 1 >= 0){
+            this.setState({
+                currentPage: currentPage - 1
+            });
+        }
+    }
+
+    onClickNext() {
+        const {currentPage, totalPages} = this.state;
+        if((currentPage + 1) < totalPages){
+            this.setState({
+                currentPage: currentPage + 1
+            });
+        }
     }
 
     render() {
@@ -252,274 +404,15 @@ export class StudentSearchPage extends React.Component<any, any> {
                                                 </div>
                                                 <div className="col-xs-12 col-sm-12 col-md-6 right text-right">
                                                     <ul>
-                                                        <li><a href="#"><i className="fa fa-chevron-left"></i> Prev</a></li>
-                                                        <li><a href="#">1</a></li>
-                                                        <li><a href="#">2</a></li>
-                                                        <li><a href="#">3</a></li>
-                                                        <li><a href="#">4</a></li>
-                                                        <li><a href="#">5</a></li>
-                                                        <li><a href="#">Next <i className="fa fa-chevron-right"></i></a></li>
+                                                    <li><a href="#" onClick={this.onClickPrev}><i className="fa fa-chevron-left"></i> Prev</a></li>
+                                                        {this.createPaginationJSX()}
+                                                        <li><a href="#" onClick={this.onClickNext}>Next <i className="fa fa-chevron-right"></i></a></li>
                                                     </ul>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="main-contant-row">
-                                            <div className="contant-row">
-                                                <div className="row">
-                                                    <div className="col-xs-6 col-sm-6 col-md-2 image-check">
-                                                        <input type="checkbox" className="checkbox" />
-                                                        <span><img src="../../img/uicon_m.png" alt="" /></span>
-                                                    </div>
-
-                                                    <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
-                                                        <div className="name"><a href="#">Jeremy Andrew Rose</a></div>
-                                                        <div className="row admission-contant">
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Admission No:</span>
-                                                                    <p>951426</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Student Id:</span>
-                                                                    <p>2019/21</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Roll No:</span>
-                                                                    <p>951426</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Department</span>
-                                                                    <p>Computer Science</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Class:</span>
-                                                                    <p>First Year</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Section:</span>
-                                                                    <p>C</p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-xs-6 col-sm-12 col-md-3 right-button">
-                                                        <ul>
-                                                            <li><i className="fa fa-envelope"></i></li>
-                                                            <li><i className="fa fa-trash"></i></li>
-                                                            <li><i className="fa fa-print"></i></li>
-                                                            <li><i className="fa fa-cloud-download"></i></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="contant-row">
-                                                <div className="row">
-                                                    <div className="col-xs-6 col-sm-6 col-md-2 image-check">
-                                                        <input type="checkbox" className="checkbox" />
-                                                        <span><img src="../../img/uicon_m.png" alt="" /></span>
-                                                    </div>
-                                                    <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
-                                                        <div className="name"><a href="#">Jeremy Andrew Rose</a></div>
-                                                        <div className="row admission-contant">
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Admission No:</span>
-                                                                    <p>951426</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Student Id:</span>
-                                                                    <p>2019/21</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Roll No:</span>
-                                                                    <p>951426</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Department</span>
-                                                                    <p>Computer Science</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Class:</span>
-                                                                    <p>First Year</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Section:</span>
-                                                                    <p>C</p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-xs-6 col-sm-12 col-md-3 right-button">
-                                                        <ul>
-                                                            <li><i className="fa fa-envelope"></i></li>
-                                                            <li><i className="fa fa-trash"></i></li>
-                                                            <li><i className="fa fa-print"></i></li>
-                                                            <li><i className="fa fa-cloud-download"></i></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="contant-row">
-                                                <div className="row">
-                                                    <div className="ccol-xs-6 col-sm-6 col-md-2 image-check">
-                                                        <input type="checkbox" className="checkbox" />
-                                                        <span><img src="../../img/uicon_m.png" alt="" /></span>
-                                                    </div>
-                                                    <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
-                                                        <div className="name"><a href="#">Jeremy Andrew Rose</a></div>
-                                                        <div className="row admission-contant">
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Admission No:</span>
-                                                                    <p>951426</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Student Id:</span>
-                                                                    <p>2019/21</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Roll No:</span>
-                                                                    <p>951426</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Department</span>
-                                                                    <p>Computer Science</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Class:</span>
-                                                                    <p>First Year</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Section:</span>
-                                                                    <p>C</p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-xs-6 col-sm-12 col-md-3 right-button">
-                                                        <ul>
-                                                            <li><i className="fa fa-envelope"></i></li>
-                                                            <li><i className="fa fa-trash"></i></li>
-                                                            <li><i className="fa fa-print"></i></li>
-                                                            <li><i className="fa fa-cloud-download"></i></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="contant-row">
-                                                <div className="row">
-                                                    <div className="col-xs-6 col-sm-6 col-md-2 image-check">
-                                                        <input type="checkbox" className="checkbox" />
-                                                        <span><img src="../../img/uicon_m.png" alt="" /></span>
-                                                    </div>
-                                                    <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
-                                                        <div className="name"><a href="#">Jeremy Andrew Rose</a></div>
-                                                        <div className="row admission-contant">
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Admission No:</span>
-                                                                    <p>951426</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Student Id:</span>
-                                                                    <p>2019/21</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Roll No:</span>
-                                                                    <p>951426</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Department</span>
-                                                                    <p>Computer Science</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Class:</span>
-                                                                    <p>First Year</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Section:</span>
-                                                                    <p>C</p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-xs-6 col-sm-12 col-md-3 right-button">
-                                                        <ul>
-                                                            <li><i className="fa fa-envelope"></i></li>
-                                                            <li><i className="fa fa-trash"></i></li>
-                                                            <li><i className="fa fa-print"></i></li>
-                                                            <li><i className="fa fa-cloud-download"></i></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="contant-row">
-                                                <div className="row">
-                                                    <div className="col-xs-6 col-sm-6 col-md-2 image-check">
-                                                        <input type="checkbox" className="checkbox" />
-                                                        <span><img src="../../img/uicon_m.png" alt="" /></span>
-                                                    </div>
-                                                    <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
-                                                        <div className="name"><a href="#">Jeremy Andrew Rose</a></div>
-                                                        <div className="row admission-contant">
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Admission No:</span>
-                                                                    <p>951426</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Student Id:</span>
-                                                                    <p>2019/21</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Roll No:</span>
-                                                                    <p>951426</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Department</span>
-                                                                    <p>Computer Science</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-12 col-md-4">
-                                                                <div className="admission_no">
-                                                                    <span>Class:</span>
-                                                                    <p>First Year</p>
-                                                                </div>
-                                                                <div className="admission_no">
-                                                                    <span>Section:</span>
-                                                                    <p>C</p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-xs-6 col-sm-12 col-md-3 right-button">
-                                                        <ul>
-                                                            <li><i className="fa fa-envelope"></i></li>
-                                                            <li><i className="fa fa-trash"></i></li>
-                                                            <li><i className="fa fa-print"></i></li>
-                                                            <li><i className="fa fa-cloud-download"></i></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            {this.createStudentJSX()}
                                         </div>
                                     </div>
                                 </div>
