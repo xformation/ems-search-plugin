@@ -8,7 +8,7 @@ export const teacherServices = {
 
 function searchTeacher(data: any) {
     const requestOptions = commonFunctions.getRequestOptions("GET", {});
-    return fetch(config.TEACHER_SEARCH_URL + "?cls=com.synectiks.cms.entities.Teacher&" + data, requestOptions)
+    return fetch(config.TEACHER_SEARCH_URL + "/" + data.name, requestOptions)
         .then(response => response.json());
 }
 function searchGetAllTeacher() {

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { parse } from 'query-string';
 // import { graphql, QueryProps, MutationFunc, compose } from 'react-apollo';
 // import {TabContent, TabPane, Nav, NavItem, NavLink} from 'reactstrap';
 import "../../../css/studentSearchApp.css";
@@ -17,6 +18,7 @@ export class TeacherSearchPage extends React.Component<any, any> {
                 max: ""
             },
             teachersData: [],
+            allData: [],
             isApiCalled: false,
             isCollapsed: false,
             visiting: "0",
@@ -25,7 +27,8 @@ export class TeacherSearchPage extends React.Component<any, any> {
             parttime: "0",
             itemsPerPage: 5,
             totalPages: 1,
-            currentPage: 0
+            currentPage: 0,
+            searchName: ""
         };
 
         this.onClickApply = this.onClickApply.bind(this);
@@ -39,31 +42,102 @@ export class TeacherSearchPage extends React.Component<any, any> {
         this.createPaginationJSX = this.createPaginationJSX.bind(this);
         this.onClickPrev = this.onClickPrev.bind(this);
         this.onClickNext = this.onClickNext.bind(this);
+        this.onStateChange = this.onStateChange.bind(this);
+        this.calculateTotalPages = this.calculateTotalPages.bind(this);
+        this.onCheckTeacher = this.onCheckTeacher.bind(this);
     }
 
     componentDidMount() {
         this.setState({
             isApiCalled: true
         });
-        teacherServices.searchGetAllTeacher().then(
-            (response: any) => {
-                const { itemsPerPage } = this.state;
-                this.setState({
-                    teachersData: response
-                });
-                if (response && response.length > 0) {
-                    let totalPages = Math.ceil(response.length / itemsPerPage);
+        let value = parse(window.location.search).value;
+        if (value) {
+            teacherServices.searchTeacher({ name: value }).then(
+                (response: any) => {
                     this.setState({
-                        totalPages: totalPages
-                    })
+                        teachersData: response,
+                        allData: response
+                    });
+                    this.calculateTotalPages(response);
+                    this.setState({
+                        isApiCalled: false
+                    });
+                },
+                error => {
+                    this.setState({
+                        isApiCalled: false
+                    });
                 }
-            },
-            error => {
+            );
+        } else {
+            teacherServices.searchGetAllTeacher().then(
+                (response: any) => {
+                    this.setState({
+                        teachersData: response,
+                        allData: response
+                    });
+                    this.calculateTotalPages(response);
+                    this.setState({
+                        isApiCalled: false
+                    });
+                },
+                error => {
+                    this.setState({
+                        isApiCalled: false
+                    });
+                }
+            );
+        }
+
+    }
+
+    onStateChange(e: any) {
+        const { name, value } = e.target;
+        this.setState({
+            [name]: value
+        });
+        if (name === "searchName") {
+            let result = [];
+            const { allData } = this.state;
+            if (value !== "") {
+                if (allData && allData.length > 0) {
+                    for (let i = 0; i < allData.length; i++) {
+                        let teacher = allData[i];
+                        let name = teacher.teacherName + " " + teacher.teacherMiddleName + " " + teacher.teacherLastName;
+                        name = name.toLowerCase();
+                        if (name.indexOf(value.toLowerCase()) !== -1) {
+                            result.push(teacher);
+                        }
+                    }
+                    this.setState({
+                        teachersData: result
+                    });
+                    this.calculateTotalPages(result);
+                }
+            } else {
                 this.setState({
-                    isApiCalled: false
+                    teachersData: allData
                 });
+                this.calculateTotalPages(allData);
             }
-        );
+        }
+    }
+
+    calculateTotalPages(teaches: any) {
+        const { itemsPerPage } = this.state;
+        if (teaches && teaches.length > 0) {
+            let totalPages = Math.ceil(teaches.length / itemsPerPage);
+            this.setState({
+                totalPages: totalPages,
+                currentPage: 0
+            });
+        } else {
+            this.setState({
+                totalPages: 1,
+                currentPage: 0
+            });
+        }
     }
 
     toggleCollapse() {
@@ -151,6 +225,11 @@ export class TeacherSearchPage extends React.Component<any, any> {
         });
     }
 
+    onCheckTeacher(teacher: any, e: any) {
+        const { name, checked } = e.target;
+        teacher.isChecked = checked;
+    }
+
     createTeacherJSX() {
         const { teachersData, isApiCalled, currentPage, itemsPerPage } = this.state;
         let retData = [];
@@ -164,7 +243,7 @@ export class TeacherSearchPage extends React.Component<any, any> {
                         <div className="contant-row">
                             <div className="row">
                                 <div className="col-xs-6 col-sm-6 col-md-2 image-check">
-                                    <input type="checkbox" className="checkbox" />
+                                    <input type="checkbox" className="checkbox" name={teacher.teacherName} onChange={e => this.onCheckTeacher(teacher, e)} checked={teacher.isChecked} />
                                     <span><img src="" alt="" /></span>
                                 </div>
                                 <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
@@ -229,26 +308,26 @@ export class TeacherSearchPage extends React.Component<any, any> {
         return retData;
     }
 
-    changeCurrentPage(currentPage: any){
+    changeCurrentPage(currentPage: any) {
         this.setState({
             currentPage: currentPage
         });
     }
 
     createPaginationJSX() {
-        const {totalPages, currentPage} = this.state;
+        const { totalPages, currentPage } = this.state;
         let retData = [];
-            for (let i = 0; i < totalPages; i++) {
-                retData.push(
-                    <li className={(currentPage === i ? ' active' : '')}><a href="#" onClick={e => this.changeCurrentPage(i)}>{i + 1}</a></li>
-                )
-            }
+        for (let i = 0; i < totalPages; i++) {
+            retData.push(
+                <li className={(currentPage === i ? ' active' : '')}><a href="#" onClick={e => this.changeCurrentPage(i)}>{i + 1}</a></li>
+            )
+        }
         return retData;
     }
 
     onClickPrev() {
-        const {currentPage} = this.state;
-        if(currentPage - 1 >= 0){
+        const { currentPage } = this.state;
+        if (currentPage - 1 >= 0) {
             this.setState({
                 currentPage: currentPage - 1
             });
@@ -256,8 +335,8 @@ export class TeacherSearchPage extends React.Component<any, any> {
     }
 
     onClickNext() {
-        const {currentPage, totalPages} = this.state;
-        if((currentPage + 1) < totalPages){
+        const { currentPage, totalPages } = this.state;
+        if ((currentPage + 1) < totalPages) {
             this.setState({
                 currentPage: currentPage + 1
             });
@@ -365,13 +444,13 @@ export class TeacherSearchPage extends React.Component<any, any> {
                                             <option value="Section">Section</option>
                                             <option value="Section">Section</option>
                                         </select>
-                                        <input type="text" className="input" placeholder="Enter name" />
+                                        <input type="text" className="input" placeholder="Enter name" name="searchName" onChange={this.onStateChange} value={state.searchName} />
                                     </div>
                                     <div className="students-table">
                                         <div className="top-head">
                                             <div className="row">
                                                 <div className="col-xs-12 col-sm-12 col-md-6 left">
-                                                    <input type="checkbox" className="checkbox" />
+                                                    <input type="checkbox" name="AllCheck" className="checkbox" value={this.state.checkedList}  />
                                                     <ul>
                                                         <li><i className="fa fa-refresh"></i></li>
                                                         <li><i className="fa fa-envelope"></i></li>

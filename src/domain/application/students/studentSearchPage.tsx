@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { parse } from 'query-string';
 // import { graphql, QueryProps, MutationFunc, compose } from 'react-apollo';
 // import {TabContent, TabPane, Nav, NavItem, NavLink} from 'reactstrap';
 import "../../../css/studentSearchApp.css";
@@ -23,9 +24,11 @@ export class StudentSearchPage extends React.Component<any, any> {
             },
             isApiCalled: false,
             studentsData: [],
+            allData: [],
             itemsPerPage: 5,
             totalPages: 1,
-            currentPage: 0
+            currentPage: 0,
+            searchName: ""
         };
         this.onClickApply = this.onClickApply.bind(this);
         this.onClickClear = this.onClickClear.bind(this);
@@ -37,31 +40,52 @@ export class StudentSearchPage extends React.Component<any, any> {
         this.createPaginationJSX = this.createPaginationJSX.bind(this);
         this.onClickPrev = this.onClickPrev.bind(this);
         this.onClickNext = this.onClickNext.bind(this);
+        this.onStateChange = this.onStateChange.bind(this);
+        this.calculateTotalPages = this.calculateTotalPages.bind(this);
     }
 
     componentDidMount() {
         this.setState({
             isApiCalled: true
         });
-        studentServices.searchGetAllStuent().then(
-            (response: any) => {
-                const { itemsPerPage } = this.state;
-                this.setState({
-                    studentsData: response
-                });
-                if (response && response.length > 0) {
-                    let totalPages = Math.ceil(response.length / itemsPerPage);
+        let value = parse(window.location.search).value;
+        if (value) {
+            studentServices.searchStuent({ name: value }).then(
+                (response: any) => {
                     this.setState({
-                        totalPages: totalPages
-                    })
+                        studentsData: response,
+                        allData: response
+                    });
+                    this.calculateTotalPages(response);
+                    this.setState({
+                        isApiCalled: false
+                    });
+                },
+                error => {
+                    this.setState({
+                        isApiCalled: false
+                    });
                 }
-            },
-            error => {
-                this.setState({
-                    isApiCalled: false
-                });
-            }
-        );
+            );
+        } else {
+            studentServices.searchGetAllStuent().then(
+                (response: any) => {
+                    this.setState({
+                        studentsData: response,
+                        allData: response
+                    });
+                    this.calculateTotalPages(response);
+                    this.setState({
+                        isApiCalled: false
+                    });
+                },
+                error => {
+                    this.setState({
+                        isApiCalled: false
+                    });
+                }
+            );
+        }
     }
 
     onAttendaceChange(e: any) {
@@ -101,6 +125,38 @@ export class StudentSearchPage extends React.Component<any, any> {
         this.setState({
             aggregate: aggregate
         });
+    }
+
+    onStateChange(e: any) {
+        const { name, value } = e.target;
+        this.setState({
+            [name]: value
+        });
+        if (name === "searchName") {
+            let result = [];
+            const { allData } = this.state;
+            if (value !== "") {
+                if (allData && allData.length > 0) {
+                    for (let i = 0; i < allData.length; i++) {
+                        let student = allData[i];
+                        let name = student.studentName + " " + student.studentMiddleName + " " + student.studentLastName;
+                        name = name.toLowerCase();
+                        if (name.indexOf(value.toLowerCase()) !== -1) {
+                            result.push(student);
+                        }
+                    }
+                    this.setState({
+                        studentsData: result
+                    });
+                    this.calculateTotalPages(result);
+                }
+            } else {
+                this.setState({
+                    studentsData: allData
+                });
+                this.calculateTotalPages(allData);
+            }
+        }
     }
 
     onClickApply() {
@@ -154,6 +210,22 @@ export class StudentSearchPage extends React.Component<any, any> {
                 max: ""
             }
         });
+    }
+
+    calculateTotalPages(students: any) {
+        const { itemsPerPage } = this.state;
+        if (students && students.length > 0) {
+            let totalPages = Math.ceil(students.length / itemsPerPage);
+            this.setState({
+                totalPages: totalPages,
+                currentPage: 0
+            });
+        } else {
+            this.setState({
+                totalPages: 1,
+                currentPage: 0
+            });
+        }
     }
 
     createStudentJSX() {
@@ -219,9 +291,8 @@ export class StudentSearchPage extends React.Component<any, any> {
                         </div>
                     );
                 }
-                
             }
-        }else if(isApiCalled){
+        } else if (isApiCalled) {
             retData.push(
                 <div className="text-cetner loading_img">
                     <img src="public/plugins/cms-ui-search-plugin/img/loader.gif" alt="Loader" />
@@ -235,26 +306,26 @@ export class StudentSearchPage extends React.Component<any, any> {
         return retData;
     }
 
-    changeCurrentPage(currentPage: any){
+    changeCurrentPage(currentPage: any) {
         this.setState({
             currentPage: currentPage
         });
     }
 
     createPaginationJSX() {
-        const {totalPages, currentPage} = this.state;
+        const { totalPages, currentPage } = this.state;
         let retData = [];
-            for (let i = 0; i < totalPages; i++) {
-                retData.push(
-                    <li className={(currentPage === i ? ' active' : '')}><a href="#" onClick={e => this.changeCurrentPage(i)}>{i + 1}</a></li>
-                )
-            }
+        for (let i = 0; i < totalPages; i++) {
+            retData.push(
+                <li className={(currentPage === i ? ' active' : '')}><a href="#" onClick={e => this.changeCurrentPage(i)}>{i + 1}</a></li>
+            )
+        }
         return retData;
     }
 
     onClickPrev() {
-        const {currentPage} = this.state;
-        if(currentPage - 1 >= 0){
+        const { currentPage } = this.state;
+        if (currentPage - 1 >= 0) {
             this.setState({
                 currentPage: currentPage - 1
             });
@@ -262,8 +333,8 @@ export class StudentSearchPage extends React.Component<any, any> {
     }
 
     onClickNext() {
-        const {currentPage, totalPages} = this.state;
-        if((currentPage + 1) < totalPages){
+        const { currentPage, totalPages } = this.state;
+        if ((currentPage + 1) < totalPages) {
             this.setState({
                 currentPage: currentPage + 1
             });
@@ -387,7 +458,7 @@ export class StudentSearchPage extends React.Component<any, any> {
                                             <option value="Section">Section</option>
                                             <option value="Section">Section</option>
                                         </select>
-                                        <input type="text" className="input" placeholder="Enter name" />
+                                        <input type="text" className="input" placeholder="Enter name" name="searchName" onChange={this.onStateChange} value={state.searchName} />
                                     </div>
                                     <div className="students-table">
                                         <div className="top-head">
@@ -404,7 +475,7 @@ export class StudentSearchPage extends React.Component<any, any> {
                                                 </div>
                                                 <div className="col-xs-12 col-sm-12 col-md-6 right text-right">
                                                     <ul>
-                                                    <li><a href="#" onClick={this.onClickPrev}><i className="fa fa-chevron-left"></i> Prev</a></li>
+                                                        <li><a href="#" onClick={this.onClickPrev}><i className="fa fa-chevron-left"></i> Prev</a></li>
                                                         {this.createPaginationJSX()}
                                                         <li><a href="#" onClick={this.onClickNext}>Next <i className="fa fa-chevron-right"></i></a></li>
                                                     </ul>
