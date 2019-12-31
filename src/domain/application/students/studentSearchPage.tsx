@@ -42,6 +42,8 @@ export class StudentSearchPage extends React.Component<any, any> {
         this.onClickNext = this.onClickNext.bind(this);
         this.onStateChange = this.onStateChange.bind(this);
         this.calculateTotalPages = this.calculateTotalPages.bind(this);
+        this.onCheckStudent = this.onCheckStudent.bind(this);
+        this.checkAllStudent = this.checkAllStudent.bind(this);
     }
 
     componentDidMount() {
@@ -241,7 +243,7 @@ export class StudentSearchPage extends React.Component<any, any> {
                         <div className="contant-row">
                             <div className="row">
                                 <div className="col-xs-6 col-sm-6 col-md-2 image-check">
-                                    <input type="checkbox" className="checkbox" />
+                                <input type="checkbox" className="checkbox" name={student.teacherName} onChange={e => this.onCheckStudent(student, e)} checked={student.isChecked} />
                                     <span><img src="public/plugins/cms-ui-search-plugin/img/students.png" alt="" /></span>
                                 </div>
                                 <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
@@ -339,6 +341,27 @@ export class StudentSearchPage extends React.Component<any, any> {
                 currentPage: currentPage + 1
             });
         }
+    }
+
+    onCheckStudent(student: any, e: any) {
+        const { name, checked } = e.target;
+        student.isChecked = checked;
+    }
+
+    checkAllStudent(e:any){
+        const { checked } = e.target;
+        const { studentsData } = this.state;
+        this.setState({
+            isAllChecked: checked
+        });
+        let length = studentsData.length;
+        for (let i = 0; i < length; i++) {
+            const student = studentsData[i];
+            student.isChecked = checked;
+        }
+        this.setState({
+            studentsData: studentsData
+        });
     }
 
     render() {
@@ -464,7 +487,7 @@ export class StudentSearchPage extends React.Component<any, any> {
                                         <div className="top-head">
                                             <div className="row">
                                                 <div className="col-xs-12 col-sm-12 col-md-6 left">
-                                                    <input type="checkbox" className="checkbox" />
+                                                <input type="checkbox" className="checkbox" name="AllCheck" onChange={this.checkAllStudent} checked={this.state.isAllChecked} />
                                                     <ul>
                                                         <li><i className="fa fa-refresh"></i></li>
                                                         <li><i className="fa fa-envelope"></i></li>

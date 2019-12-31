@@ -26,7 +26,8 @@ export class StaffSearchPage extends React.Component<any, any> {
             itemsPerPage: 5,
             totalPages: 1,
             currentPage: 0,
-            searchName: ""
+            searchName: "",
+            isAllChecked: false
         };
 
         this.onClickApply = this.onClickApply.bind(this);
@@ -41,6 +42,7 @@ export class StaffSearchPage extends React.Component<any, any> {
         this.onStateChange = this.onStateChange.bind(this);
         this.calculateTotalPages = this.calculateTotalPages.bind(this);
         this.onCheckStaff = this.onCheckStaff.bind(this);
+        this.checkAllStaff = this.checkAllStaff.bind(this);
     }
 
     componentDidMount() {
@@ -275,6 +277,22 @@ export class StaffSearchPage extends React.Component<any, any> {
         }
     }
 
+    checkAllStaff(e:any){
+        const { checked } = e.target;
+        const { staffsData } = this.state;
+        this.setState({
+            isAllChecked: checked
+        });
+        let length = staffsData.length;
+        for (let i = 0; i < length; i++) {
+            const staff = staffsData[i];
+            staff.isChecked = checked;
+        }
+        this.setState({
+            staffsData: staffsData
+        });
+    }
+
     render() {
         const state = this.state;
         return (
@@ -346,7 +364,7 @@ export class StaffSearchPage extends React.Component<any, any> {
                                         <div className="top-head">
                                             <div className="row">
                                                 <div className="col-xs-12 col-sm-12 col-md-6 left">
-                                                    <input type="checkbox" name="AllCheck" className="checkbox" value={this.state.checkedList} />
+                                                    <input type="checkbox" className="checkbox" name="AllCheck" onChange={this.checkAllStaff} checked={this.state.isAllChecked} />
                                                     <ul>
                                                         <li><i className="fa fa-refresh"></i></li>
                                                         <li><i className="fa fa-envelope"></i></li>

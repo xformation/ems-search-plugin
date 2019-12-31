@@ -28,7 +28,8 @@ export class TeacherSearchPage extends React.Component<any, any> {
             itemsPerPage: 5,
             totalPages: 1,
             currentPage: 0,
-            searchName: ""
+            searchName: "",
+            isAllChecked: false
         };
 
         this.onClickApply = this.onClickApply.bind(this);
@@ -45,6 +46,7 @@ export class TeacherSearchPage extends React.Component<any, any> {
         this.onStateChange = this.onStateChange.bind(this);
         this.calculateTotalPages = this.calculateTotalPages.bind(this);
         this.onCheckTeacher = this.onCheckTeacher.bind(this);
+        this.checkAllTeacher = this.checkAllTeacher.bind(this);
     }
 
     componentDidMount() {
@@ -225,11 +227,6 @@ export class TeacherSearchPage extends React.Component<any, any> {
         });
     }
 
-    onCheckTeacher(teacher: any, e: any) {
-        const { name, checked } = e.target;
-        teacher.isChecked = checked;
-    }
-
     createTeacherJSX() {
         const { teachersData, isApiCalled, currentPage, itemsPerPage } = this.state;
         let retData = [];
@@ -343,6 +340,27 @@ export class TeacherSearchPage extends React.Component<any, any> {
         }
     }
 
+    onCheckTeacher(teacher: any, e: any) {
+        const { name, checked } = e.target;
+        teacher.isChecked = checked;
+    }
+
+    checkAllTeacher(e:any){
+        const { checked } = e.target;
+        const { teachersData } = this.state;
+        this.setState({
+            isAllChecked: checked
+        });
+        let length = teachersData.length;
+        for (let i = 0; i < length; i++) {
+            const teacher = teachersData[i];
+            teacher.isChecked = checked;
+        }
+        this.setState({
+            teachersData: teachersData
+        });
+    }
+
     render() {
         const state = this.state;
         return (
@@ -450,7 +468,7 @@ export class TeacherSearchPage extends React.Component<any, any> {
                                         <div className="top-head">
                                             <div className="row">
                                                 <div className="col-xs-12 col-sm-12 col-md-6 left">
-                                                    <input type="checkbox" name="AllCheck" className="checkbox" value={this.state.checkedList}  />
+                                                    <input type="checkbox" className="checkbox" name="AllCheck" onChange={this.checkAllTeacher} checked={this.state.isAllChecked} />
                                                     <ul>
                                                         <li><i className="fa fa-refresh"></i></li>
                                                         <li><i className="fa fa-envelope"></i></li>
