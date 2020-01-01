@@ -8,7 +8,7 @@ export const staffServices = {
 
 function searchStaff(data: any) {
     const requestOptions = commonFunctions.getRequestOptions("GET", {});
-    return fetch(config.STAFF_SEARCH_URL + "/" + data.name, requestOptions)
+    return fetch(config.STAFF_SEARCH_URL + "?staffName=" + data.name, requestOptions)
         .then(response => response.json());
 }
 function searchGetAllStaff() {

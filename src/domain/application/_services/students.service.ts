@@ -8,7 +8,7 @@ export const studentServices = {
 
 function searchStuent(data: any) {
     const requestOptions = commonFunctions.getRequestOptions("GET", {});
-    return fetch(config.STUDENT_SEARCH_URL + "/" + data.name, requestOptions)
+    return fetch(config.STUDENT_SEARCH_URL + "?studentName=" + data.name, requestOptions)
         .then(response => response.json());
 }
 function searchGetAllStuent() {
