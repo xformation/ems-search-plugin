@@ -44,6 +44,7 @@ export class StudentSearchPage extends React.Component<any, any> {
         this.calculateTotalPages = this.calculateTotalPages.bind(this);
         this.onCheckStudent = this.onCheckStudent.bind(this);
         this.checkAllStudent = this.checkAllStudent.bind(this);
+        this.createSelectbox = this.createSelectbox.bind(this);
     }
 
     componentDidMount() {
@@ -101,6 +102,16 @@ export class StudentSearchPage extends React.Component<any, any> {
         this.setState({
             attendance: attendance
         });
+    }
+
+    createSelectbox() {
+        const allData = [];
+        for (let i = 0; i < 100; i++) {
+            allData.push(
+                <option value={i + 1}>{i + 1}</option>
+            );
+        }
+        return allData;
     }
 
     onGradesChange(e: any) {
@@ -243,7 +254,7 @@ export class StudentSearchPage extends React.Component<any, any> {
                         <div className="contant-row">
                             <div className="row">
                                 <div className="col-xs-6 col-sm-6 col-md-2 image-check">
-                                <input type="checkbox" className="checkbox" name={student.teacherName} onChange={e => this.onCheckStudent(student, e)} checked={student.isChecked} />
+                                    <input type="checkbox" className="checkbox" name={student.teacherName} onChange={e => this.onCheckStudent(student, e)} checked={student.isChecked} />
                                     <span><img src="public/plugins/cms-ui-search-plugin/img/students.png" alt="" /></span>
                                 </div>
                                 <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
@@ -348,7 +359,7 @@ export class StudentSearchPage extends React.Component<any, any> {
         student.isChecked = checked;
     }
 
-    checkAllStudent(e:any){
+    checkAllStudent(e: any) {
         const { checked } = e.target;
         const { studentsData } = this.state;
         this.setState({
@@ -386,22 +397,14 @@ export class StudentSearchPage extends React.Component<any, any> {
                                             <label>Min</label>
                                             <select name="min-attendance" onChange={this.onAttendaceChange} value={state.attendance.min}>
                                                 <option value="">Min</option>
-                                                <option value="1">1</option>
-                                                <option value="2">2</option>
-                                                <option value="3">3</option>
-                                                <option value="4">4</option>
-                                                <option value="5">5</option>
+                                                {this.createSelectbox()}
                                             </select>
                                         </div>
                                         <div className="mix-box">
                                             <label>Max</label>
                                             <select name="max-attendance" onChange={this.onAttendaceChange} value={state.attendance.max}>
                                                 <option value="">Max</option>
-                                                <option value="6">6</option>
-                                                <option value="7">7</option>
-                                                <option value="8">8</option>
-                                                <option value="9">9</option>
-                                                <option value="10">10</option>
+                                                {this.createSelectbox()}
                                             </select>
                                         </div>
                                     </div>
@@ -413,22 +416,14 @@ export class StudentSearchPage extends React.Component<any, any> {
                                             <label>Min</label>
                                             <select name="min-grades" onChange={this.onGradesChange} value={state.grades.min}>
                                                 <option value="">Min</option>
-                                                <option value="1">1</option>
-                                                <option value="2">2</option>
-                                                <option value="3">3</option>
-                                                <option value="4">4</option>
-                                                <option value="5">5</option>
+                                                {this.createSelectbox()}
                                             </select>
                                         </div>
                                         <div className="mix-box">
                                             <label>Max</label>
                                             <select name="max-grades" onChange={this.onGradesChange} value={state.grades.max}>
                                                 <option value="">Max</option>
-                                                <option value="6">6</option>
-                                                <option value="7">7</option>
-                                                <option value="8">8</option>
-                                                <option value="9">9</option>
-                                                <option value="10">10</option>
+                                                {this.createSelectbox()}
                                             </select>
                                         </div>
                                     </div>
@@ -440,22 +435,14 @@ export class StudentSearchPage extends React.Component<any, any> {
                                             <label>Min</label>
                                             <select name="min-aggregate" onChange={this.onAggregateChange} value={state.aggregate.min}>
                                                 <option value="">Min</option>
-                                                <option value="1">1</option>
-                                                <option value="2">2</option>
-                                                <option value="3">3</option>
-                                                <option value="4">4</option>
-                                                <option value="5">5</option>
+                                                {this.createSelectbox()}
                                             </select>
                                         </div>
                                         <div className="mix-box">
                                             <label>Max</label>
                                             <select name="max-aggregate" onChange={this.onAggregateChange} value={state.aggregate.max}>
                                                 <option value="">Max</option>
-                                                <option value="6">6</option>
-                                                <option value="7">7</option>
-                                                <option value="8">8</option>
-                                                <option value="9">9</option>
-                                                <option value="10">10</option>
+                                                {this.createSelectbox()}
                                             </select>
                                         </div>
                                     </div>
@@ -487,7 +474,7 @@ export class StudentSearchPage extends React.Component<any, any> {
                                         <div className="top-head">
                                             <div className="row">
                                                 <div className="col-xs-12 col-sm-12 col-md-6 left">
-                                                <input type="checkbox" className="checkbox" name="AllCheck" onChange={this.checkAllStudent} checked={this.state.isAllChecked} />
+                                                    <input type="checkbox" className="checkbox" name="AllCheck" onChange={this.checkAllStudent} checked={this.state.isAllChecked} />
                                                     <ul>
                                                         <li><i className="fa fa-refresh"></i></li>
                                                         <li><i className="fa fa-envelope"></i></li>

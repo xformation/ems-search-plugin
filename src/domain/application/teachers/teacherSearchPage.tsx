@@ -360,7 +360,15 @@ export class TeacherSearchPage extends React.Component<any, any> {
             teachersData: teachersData
         });
     }
-
+    createSelectbox() {
+        const allData = [];
+        for (let i = 0; i < 100; i++) {
+            allData.push(
+                <option value={i + 1}>{i + 1}</option>
+            );
+        }
+        return allData;
+    }
     render() {
         const state = this.state;
         return (
@@ -383,22 +391,14 @@ export class TeacherSearchPage extends React.Component<any, any> {
                                             <label>Min</label>
                                             <select name="min-passing" onChange={this.onPassingChange} value={state.passing.min}>
                                                 <option value="">Min</option>
-                                                <option>1</option>
-                                                <option>2</option>
-                                                <option>3</option>
-                                                <option>4</option>
-                                                <option>5</option>
+                                                {this.createSelectbox()}
                                             </select>
                                         </div>
                                         <div className="mix-box">
                                             <label>Max</label>
                                             <select name="max-passing" onChange={this.onPassingChange} value={state.passing.max}>
                                                 <option value="">Max</option>
-                                                <option>6</option>
-                                                <option>7</option>
-                                                <option>8</option>
-                                                <option>9</option>
-                                                <option>10</option>
+                                                {this.createSelectbox()}
                                             </select>
                                         </div>
                                     </div>
@@ -410,22 +410,14 @@ export class TeacherSearchPage extends React.Component<any, any> {
                                             <label>Min</label>
                                             <select name="min-subjects" onChange={this.onSubjectsChange} value={state.subjects.min}>
                                                 <option value="">Min</option>
-                                                <option>1</option>
-                                                <option>2</option>
-                                                <option>3</option>
-                                                <option>4</option>
-                                                <option>5</option>
+                                                {this.createSelectbox()}
                                             </select>
                                         </div>
                                         <div className="mix-box">
                                             <label>Max</label>
                                             <select name="max-subjects" onChange={this.onSubjectsChange} value={state.subjects.max}>
                                                 <option value="">Max</option>
-                                                <option>6</option>
-                                                <option>7</option>
-                                                <option>8</option>
-                                                <option>9</option>
-                                                <option>10</option>
+                                                {this.createSelectbox()}
                                             </select>
                                         </div>
                                     </div>
