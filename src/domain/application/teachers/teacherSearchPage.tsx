@@ -216,7 +216,11 @@ export class TeacherSearchPage extends React.Component<any, any> {
             subjects: {
                 min: "",
                 max: ""
-            }
+            },
+            visiting: "0",
+            permanent: "0",
+            fulltime: "0",
+            parttime: "0"
         });
     }
 

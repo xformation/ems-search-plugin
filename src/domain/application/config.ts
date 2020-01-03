@@ -7,6 +7,8 @@ export const config = {
   TEACHER_SEARCH_URL: apiUrl + '/api/cmsteachers',
   GET_ALL_TEACHER_URL: apiUrl + '/api/cmsteachers',
   STAFF_SEARCH_URL: apiUrl + '/api/cmsstaffs',
-  GET_ALL_STAFF_URL: apiUrl + '/api/cmsstaffs'
+  GET_ALL_STAFF_URL: apiUrl + '/api/cmsstaffs',
+  VEHICLE_SEARCH_URL: apiUrl + '/api/cmsvehicles',
+  GET_ALL_VEHICLE_URL: apiUrl + '/api/cmsvehicles'
 };
 

@@ -9,20 +9,24 @@ export class StaffSearchPage extends React.Component<any, any> {
     constructor(props: any) {
         super(props);
         this.state = {
+            capcity: {
+                min: "",
+                max: ""
+            },
             staffsData: [],
             allData: [],
             isApiCalled: false,
-            isCollapsedStaff: false,
-            isCollapsedStatus: false,
+            isCollapsedOwnership: false,
             isCollapsedType: false,
-            primary: "0",
-            secondary: "0",
+            isCollapsedStatus: false,
+            bus: "0",
+            minibus: "0",
+            car: "0",
+            auto: "0",
             contract: "0",
-            permanent: "0",
-            fulltime: "0",
-            parttime: "0",
-            teaching: "0",
-            nonteaching: "0",
+            owned: "0",
+            temporary: "0",
+            permenant: "0",
             itemsPerPage: 5,
             totalPages: 1,
             currentPage: 0,
@@ -43,6 +47,8 @@ export class StaffSearchPage extends React.Component<any, any> {
         this.calculateTotalPages = this.calculateTotalPages.bind(this);
         this.onCheckStaff = this.onCheckStaff.bind(this);
         this.checkAllStaff = this.checkAllStaff.bind(this);
+        this.createSelectbox = this.createSelectbox.bind(this);
+        this.onAttendaceChange = this.onAttendaceChange.bind(this);
     }
 
     componentDidMount() {
@@ -145,11 +151,48 @@ export class StaffSearchPage extends React.Component<any, any> {
     }
 
     onClickApply() {
-
+        const { capcity } = this.state;
+        let data: any = {
+            filters: []
+        };
+        let sendData: any = {};
+        if (capcity.min && capcity.max) {
+            sendData.capcity = capcity.min + "-" + capcity.max;
+        }
+        data.filters.push(sendData);
+        this.setState({
+            isApiCalled: true
+        });
+        staffServices.searchStaff("filters=" + JSON.stringify(data)).then(
+            (response: any) => {
+                console.log(response);
+                this.setState({
+                    isApiCalled: false
+                });
+            },
+            error => {
+                this.setState({
+                    isApiCalled: false
+                });
+            }
+        );
     }
 
     onClickClear() {
-
+        this.setState({
+            capcity: {
+                min: "",
+                max: ""
+            },
+            bus: "0",
+            minibus: "0",
+            car: "0",
+            auto: "0",
+            contract: "0",
+            owned: "0",
+            temporary: "0",
+            permenant: "0"
+        });
     }
 
     onChangeCheckbox(e: any) {
@@ -157,6 +200,29 @@ export class StaffSearchPage extends React.Component<any, any> {
         this.setState({
             [name]: checked ? "1" : "0"
         });
+    }
+
+    onAttendaceChange(e: any) {
+        const { name, value } = e.target;
+        const { capcity } = this.state;
+        if (name === "min-capcity") {
+            capcity.min = value;
+        } else {
+            capcity.max = value;
+        }
+        this.setState({
+            capcity: capcity
+        });
+    }
+
+    createSelectbox() {
+        const allData = [];
+        for (let i = 0; i < 100; i++) {
+            allData.push(
+                <option value={i + 1}>{i + 1}</option>
+            );
+        }
+        return allData;
     }
 
     onCheckStaff(staff: any, e: any) {
@@ -308,32 +374,51 @@ export class StaffSearchPage extends React.Component<any, any> {
                                 <button className="btn btn-secondary apply-btn" onClick={this.onClickApply} disabled={state.isApiCalled}>Apply</button>
                             </div>
                             <div className="filterbox">
-                                <div className="box">
-                                    <h4 onClick={e => this.toggleCollapse("isCollapsedStaff")} className="toggle">Staff <i className={"fa " + (this.state.isCollapsedStaff ? 'fa-chevron-down' : 'fa-chevron-up')}></i></h4>
-                                    <div className={"rainge " + (this.state.isCollapsedStaff ? 'active' : '')}>
-                                        <ul>
-                                            <li>Primary <input type="checkbox" name="primary" className="checkbox" onChange={this.onChangeCheckbox} checked={state.primary === "1"} /></li>
-                                            <li>Secondary <input type="checkbox" className="checkbox" name="secondary" onChange={this.onChangeCheckbox} checked={state.secondary === "1"} /></li>
-                                        </ul>
+                            <div className="box">
+                                    <h4>Capcity</h4>
+                                    <div className="rainge">
+                                        <div className="min-box">
+                                            <label>Min</label>
+                                            <select name="min-capcity" onChange={this.onAttendaceChange} value={state.capcity.min}>
+                                                <option value="">Min</option>
+                                                {this.createSelectbox()}
+                                            </select>
+                                        </div>
+                                        <div className="mix-box">
+                                            <label>Max</label>
+                                            <select name="max-capcity" onChange={this.onAttendaceChange} value={state.capcity.max}>
+                                                <option value="">Max</option>
+                                                {this.createSelectbox()}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="box">
-                                    <h4 onClick={e => this.toggleCollapse("isCollapsedStatus")} className="toggle">Status of Staff <i className={"fa " + (this.state.isCollapsedStatus ? 'fa-chevron-down' : 'fa-chevron-up')}></i></h4>
-                                    <div className={"rainge " + (this.state.isCollapsedStatus ? 'active' : '')}>
-                                        <ul>
-                                            <li>Contract <input type="checkbox" name="contract" className="checkbox" onChange={this.onChangeCheckbox} checked={state.contract === "1"} /></li>
-                                            <li>Permanent <input type="checkbox" className="checkbox" name="permanent" onChange={this.onChangeCheckbox} checked={state.permanent === "1"} /></li>
-                                            <li>Fulltime <input type="checkbox" className="checkbox" name="fulltime" onChange={this.onChangeCheckbox} checked={state.fulltime === "1"} /></li>
-                                            <li>Part-time <input type="checkbox" className="checkbox" name="parttime" onChange={this.onChangeCheckbox} checked={state.parttime === "1"} /></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div className="box">
-                                    <h4 onClick={e => this.toggleCollapse("isCollapsedType")} className="toggle">Type of Staff <i className={"fa " + (this.state.isCollapsedType ? 'fa-chevron-down' : 'fa-chevron-up')}></i></h4>
+                                    <h4 onClick={e => this.toggleCollapse("isCollapsedType")} className="toggle">Vehicle Type <i className={"fa " + (this.state.isCollapsedType ? 'fa-chevron-down' : 'fa-chevron-up')}></i></h4>
                                     <div className={"rainge " + (this.state.isCollapsedType ? 'active' : '')}>
                                         <ul>
-                                            <li>Teaching <input type="checkbox" name="teaching" className="checkbox" onChange={this.onChangeCheckbox} checked={state.teaching === "1"} /></li>
-                                            <li>Non Teaching <input type="checkbox" className="checkbox" name="nonteaching" onChange={this.onChangeCheckbox} checked={state.nonteaching === "1"} /></li>
+                                            <li>Bus <input type="checkbox" name="bus" className="checkbox" onChange={this.onChangeCheckbox} checked={state.bus === "1"} /></li>
+                                            <li>Mini Bus <input type="checkbox" className="checkbox" name="minibus" onChange={this.onChangeCheckbox} checked={state.minibus === "1"} /></li>
+                                            <li>Car <input type="checkbox" className="checkbox" name="car" onChange={this.onChangeCheckbox} checked={state.car === "1"} /></li>
+                                            <li>Auto <input type="checkbox" className="checkbox" name="auto" onChange={this.onChangeCheckbox} checked={state.auto === "1"} /></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div className="box">
+                                    <h4 onClick={e => this.toggleCollapse("isCollapsedOwnership")} className="toggle">Ownership <i className={"fa " + (this.state.isCollapsedOwnership ? 'fa-chevron-down' : 'fa-chevron-up')}></i></h4>
+                                    <div className={"rainge " + (this.state.isCollapsedOwnership ? 'active' : '')}>
+                                        <ul>
+                                            <li>Contract <input type="checkbox" name="contract" className="checkbox" onChange={this.onChangeCheckbox} checked={state.contract === "1"} /></li>
+                                            <li>Owned <input type="checkbox" className="checkbox" name="owned" onChange={this.onChangeCheckbox} checked={state.owned === "1"} /></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div className="box">
+                                    <h4 onClick={e => this.toggleCollapse("isCollapsedStatus")} className="toggle">Contract Status <i className={"fa " + (this.state.isCollapsedStatus ? 'fa-chevron-down' : 'fa-chevron-up')}></i></h4>
+                                    <div className={"rainge " + (this.state.isCollapsedStatus ? 'active' : '')}>
+                                        <ul>
+                                            <li>Temporary <input type="checkbox" name="temporary" className="checkbox" onChange={this.onChangeCheckbox} checked={state.temporary === "1"} /></li>
+                                            <li>Permenant <input type="checkbox" className="checkbox" name="permenant" onChange={this.onChangeCheckbox} checked={state.permenant === "1"} /></li>
                                         </ul>
                                     </div>
                                 </div>
