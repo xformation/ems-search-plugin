@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { parse } from 'query-string';
-// import { graphql, QueryProps, MutationFunc, compose } from 'react-apollo';
+import { graphql, QueryProps, MutationFunc, compose } from 'react-apollo';
 // import {TabContent, TabPane, Nav, NavItem, NavLink} from 'reactstrap';
 import "../../../css/studentSearchApp.css";
 import { teacherServices } from '../_services/teachers.service';
+import wsCmsBackendServiceClient from '../../../wsCmsBackendServiceClient';
 
 export class TeacherSearchPage extends React.Component<any, any> {
     constructor(props: any) {
@@ -29,7 +30,17 @@ export class TeacherSearchPage extends React.Component<any, any> {
             totalPages: 1,
             currentPage: 0,
             searchName: "",
-            isAllChecked: false
+            isAllChecked: false,
+            branchId: null,
+            academicYearId: null,
+            departmentId: null,
+            user: null,
+            departmentList: null,
+            batchList: null,
+            sectionList: null,
+            selectedDepartmentId: null,
+            selectedBatchId: null,
+            selectedSectionId: null,
         };
 
         this.onClickApply = this.onClickApply.bind(this);
@@ -47,14 +58,50 @@ export class TeacherSearchPage extends React.Component<any, any> {
         this.calculateTotalPages = this.calculateTotalPages.bind(this);
         this.onCheckTeacher = this.onCheckTeacher.bind(this);
         this.checkAllTeacher = this.checkAllTeacher.bind(this);
+        this.createDepartmentSelectbox = this.createDepartmentSelectbox.bind(this);
+        this.onChangeSelectDropDown = this.onChangeSelectDropDown.bind(this);
+        this.createBatchSelectbox = this.createBatchSelectbox.bind(this);
+        this.createSectionSelectbox = this.createSectionSelectbox.bind(this);
+        this.typeOfFacultyFilter = this.typeOfFacultyFilter.bind(this);
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.setState({
             isApiCalled: true
         });
+        await teacherServices.searchLoggedInUser().then(
+            (response: any) => {
+                this.setState({
+                    user: response
+                });
+            }
+        );
+        await this.registerSocket();
+        await teacherServices.searchDepartment().then(
+            (response: any) => {
+                this.setState({
+                    departmentList: response
+                });
+            }
+        );
+        await teacherServices.searchBatch().then(
+            (response: any) => {
+                this.setState({
+                    batchList: response
+                });
+            }
+        );
+        await teacherServices.searchSection().then(
+            (response: any) => {
+                this.setState({
+                    sectionList: response
+                });
+            }
+        );
         let value = parse(window.location.search).value;
+        console.log("1. window.location.search :---> ",value);
         if (value) {
+            console.log("2. window.location.search :---> ",value);
             teacherServices.searchTeacher({ name: value }).then(
                 (response: any) => {
                     this.setState({
@@ -73,6 +120,7 @@ export class TeacherSearchPage extends React.Component<any, any> {
                 }
             );
         } else {
+            console.log("3. window.location.search :---> ",value);
             teacherServices.searchGetAllTeacher().then(
                 (response: any) => {
                     this.setState({
@@ -91,7 +139,33 @@ export class TeacherSearchPage extends React.Component<any, any> {
                 }
             );
         }
+        
+    }
 
+    registerSocket() {
+        const socket = wsCmsBackendServiceClient.getInstance();
+    
+        socket.onmessage = (response: any) => {
+            let message = JSON.parse(response.data);
+            console.log("teacherSearchPage. message received from server ::: ", message);
+            this.setState({
+                branchId: message.selectedBranchId,
+                academicYearId: message.selectedAcademicYearId,
+                departmentId: message.selectedDepartmentId,
+            });
+            console.log("teacherSearchPage. branchId: ",this.state.branchId);
+            console.log("teacherSearchPage. ayId: ",this.state.academicYearId);  
+            console.log("teacherSearchPage. departmentId: ",this.state.departmentId);  
+        }
+    
+        socket.onopen = () => {
+            console.log("teacherSearchPage. Opening websocekt connection to cmsbackend. User : ",this.state.user.login);
+            socket.send(this.state.user.login);
+        }
+    
+        window.onbeforeunload = () => {
+            console.log("teacherSearchPage. Closing websocket connection with cms backend service");
+        }
     }
 
     onStateChange(e: any) {
@@ -124,6 +198,38 @@ export class TeacherSearchPage extends React.Component<any, any> {
                 this.calculateTotalPages(allData);
             }
         }
+    }
+
+    typeOfFacultyFilter() {
+        const {visiting,permanent,fulltime, parttime} = this.state;
+            let result = [];
+            const { allData } = this.state;
+            if (visiting === "1" || permanent === "1" || fulltime === "1" || parttime === "1") {
+                if (allData && allData.length > 0) {
+                    for (let i = 0; i < allData.length; i++) {
+                        let teacher = allData[i];
+                        if (visiting === "1" && teacher.staffType.toLowerCase() === "visiting") {
+                            result.push(teacher);
+                        }else if (permanent === "1" && teacher.staffType.toLowerCase() === "permanent") {
+                            result.push(teacher);
+                        }else if (fulltime === "1" && teacher.staffType.toLowerCase() === "fulltime") {
+                            result.push(teacher);
+                        }else if (parttime === "1" && teacher.staffType.toLowerCase() === "parttime") {
+                            result.push(teacher);
+                        }
+                    }
+                    this.setState({
+                        teachersData: result
+                    });
+                    this.calculateTotalPages(result);
+                }
+            } else {
+                this.setState({
+                    teachersData: allData
+                });
+                this.calculateTotalPages(allData);
+            }
+        // }
     }
 
     calculateTotalPages(teaches: any) {
@@ -175,7 +281,7 @@ export class TeacherSearchPage extends React.Component<any, any> {
     }
 
     onClickApply() {
-        const { passing, subjects } = this.state;
+        const { passing, subjects, visiting, permanent,fulltime, parttime } = this.state;
         if ((passing.min && passing.max) || (subjects.min && subjects.max)) {
             let data: any = {
                 filters: []
@@ -205,6 +311,10 @@ export class TeacherSearchPage extends React.Component<any, any> {
                 }
             );
         }
+        // if (visiting === "1" || permanent === "1" || fulltime === "1" || parttime === "1") {
+        //     console.log("Type of faculy filter :::::::");
+            this.typeOfFacultyFilter();
+        // }
     }
 
     onClickClear() {
@@ -232,67 +342,80 @@ export class TeacherSearchPage extends React.Component<any, any> {
     }
 
     createTeacherJSX() {
-        const { teachersData, isApiCalled, currentPage, itemsPerPage } = this.state;
+        const { teachersData, isApiCalled, currentPage, itemsPerPage, branchId, selectedDepartmentId } = this.state;
         let retData = [];
         const length = teachersData.length;
         if (length > 0) {
             for (let i = 0; i < length; i++) {
                 const teacher = teachersData[i];
-                const pageFactor = Math.floor(i / itemsPerPage);
-                if (pageFactor === currentPage) {
-                    retData.push(
-                        <div className="contant-row">
-                            <div className="row">
-                                <div className="col-xs-6 col-sm-6 col-md-2 image-check">
-                                    <input type="checkbox" className="checkbox" name={teacher.teacherName} onChange={e => this.onCheckTeacher(teacher, e)} checked={teacher.isChecked} />
-                                    <span><img src="" alt="" /></span>
-                                </div>
-                                <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
-                                    <div className="name">{teacher.teacherName} {teacher.teacherMiddleName} {teacher.teacherLastName}</div>
-                                    <div className="row admission-contant">
-                                        <div className="col-12 col-md-4">
-                                            <div className="admission_no">
-                                                <span>Admission No:</span>
-                                                <p>{teacher.id}</p>
+                if(branchId === teacher.branch.id){
+                    if(selectedDepartmentId !== null && selectedDepartmentId !== undefined && selectedDepartmentId !== ""){
+                        if(parseInt(selectedDepartmentId,10) !== parseInt(teacher.department.id,10)){
+                                continue;
+                        }
+                    }
+                    const pageFactor = Math.floor(i / itemsPerPage);
+                    if (pageFactor === currentPage) {
+                        retData.push(
+                            <div className="contant-row">
+                                <div className="row">
+                                    <div className="col-xs-6 col-sm-6 col-md-2 image-check">
+                                        <input type="checkbox" className="checkbox" name={teacher.teacherName} onChange={e => this.onCheckTeacher(teacher, e)} checked={teacher.isChecked} />
+                                        <span><img src="" alt="" /></span>
+                                    </div>
+                                    <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
+                                        <div className="name">{teacher.teacherName} {teacher.teacherMiddleName} {teacher.teacherLastName}</div>
+                                        <div className="row admission-contant">
+                                            <div className="col-12 col-md-4">
+                                                <div className="admission_no">
+                                                    <span>Employee Id:</span>
+                                                    <p>{teacher.employeeId}</p>
+                                                </div>
+                                                <div className="admission_no">
+                                                    <span>Designation:</span>
+                                                    <p>{teacher.designation}</p>
+                                                </div>
                                             </div>
-                                            <div className="admission_no">
-                                                <span>Student Id:</span>
-                                                <p>{teacher.id}</p>
+                                            <div className="col-12 col-md-4">
+                                                <div className="admission_no">
+                                                    <span>Teacher Id:</span>
+                                                    <p>{teacher.id}</p>
+                                                </div>
+                                                <div className="admission_no">
+                                                    <span>Status:</span>
+                                                    <p>{teacher.status}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="col-12 col-md-4">
-                                            <div className="admission_no">
-                                                <span>Roll No:</span>
-                                                <p>{teacher.id}</p>
+                                            <div className="col-12 col-md-4">
+                                                <div className="admission_no">
+                                                    <span>Type of Faculty:</span>
+                                                    <p>{teacher.staffType}</p>
+                                                </div>
+                                                <div className="admission_no">
+                                                    <span>Department</span>
+                                                    <p>{teacher.department.name}</p>
+                                                </div>
                                             </div>
-                                            <div className="admission_no">
-                                                <span>Department</span>
-                                                <p>{teacher.department.name}</p>
-                                            </div>
-                                        </div>
-                                        <div className="col-12 col-md-4">
-                                            <div className="admission_no">
-                                                <span>Class:</span>
-                                                <p>{teacher.branch.branchName}</p>
-                                            </div>
-                                            <div className="admission_no">
-                                                <span>Status:</span>
-                                                <p>{teacher.status}</p>
+                                            <div className="col-12 col-md-6">
+                                                <div className="admission_no">
+                                                    <span>Branch:</span>
+                                                    <p>{teacher.branch.branchName}</p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="col-xs-6 col-sm-12 col-md-3 right-button">
-                                    <ul>
-                                        <li><i className="fa fa-envelope"></i></li>
-                                        <li><i className="fa fa-trash"></i></li>
-                                        <li><i className="fa fa-print"></i></li>
-                                        <li><i className="fa fa-cloud-download"></i></li>
-                                    </ul>
+                                    <div className="col-xs-6 col-sm-12 col-md-3 right-button">
+                                        <ul>
+                                            <li><a className="fa fa-envelope" href={"mailto:"+teacher.teacherEmailAddress}></a></li>
+                                            {/* <li><i className="fa fa-trash"></i></li> */}
+                                            <li><i className="fa fa-print"></i></li>
+                                            <li><i className="fa fa-cloud-download"></i></li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
+                        );
+                    }
                 }
             }
         } else if (isApiCalled) {
@@ -373,6 +496,66 @@ export class TeacherSearchPage extends React.Component<any, any> {
         }
         return allData;
     }
+
+    onChangeSelectDropDown = (e: any) => {
+        e.preventDefault();
+        const { name, value } = e.nativeEvent.target;
+        this.setState({
+                [name]: value
+        });
+    }
+
+    createDepartmentSelectbox(data: any, value: any, key: any, label: any){
+        const{branchId} = this.state;
+        let retData = [];
+        if(data.length > 0){
+            for(let i=0; i<data.length;i++){
+                let item = data[i];
+                if(branchId !== null && branchId !== undefined){
+                    if(parseInt(branchId, 10) === parseInt(item.branch.id, 10)){
+                        retData.push(
+                            <option value={item[value]} key={item[key]}>{item[label]}</option>
+                        );
+                    }
+                }
+            }
+        } 
+        return retData;
+    }
+    createBatchSelectbox(data: any, value: any, key: any, label: any){
+        const{selectedDepartmentId} = this.state;
+        let retData = [];
+        if(data.length > 0){
+            for(let i=0; i<data.length;i++){
+                let item = data[i];
+                if(selectedDepartmentId !== null && selectedDepartmentId !== undefined){
+                    if(parseInt(selectedDepartmentId, 10) === parseInt(item.department.id, 10)){
+                        retData.push(
+                            <option value={item[value]} key={item[key]}>{item[label]}</option>
+                        );
+                    }
+                }
+            }
+        } 
+        return retData;
+    }
+    createSectionSelectbox(data: any, value: any, key: any, label: any){
+        const{selectedBatchId} = this.state;
+        let retData = [];
+        if(data.length > 0){
+            for(let i=0; i<data.length;i++){
+                let item = data[i];
+                if(selectedBatchId !== null && selectedBatchId !== undefined){
+                    if(parseInt(selectedBatchId, 10) === parseInt(item.batch.id, 10)){
+                        retData.push(
+                            <option value={item[value]} key={item[key]}>{item[label]}</option>
+                        );
+                    }
+                }
+            }
+        } 
+        return retData;
+    }
     render() {
         const state = this.state;
         return (
@@ -448,15 +631,29 @@ export class TeacherSearchPage extends React.Component<any, any> {
                             <div className="bg-white students-inner">
                                 <div className="w-100">
                                     <div className="button-section">
-                                        <select className="select">
-                                            <option value="Class">Class</option>
-                                            <option value="Class">Class</option>
-                                            <option value="Class">Class</option>
+                                        <select className="select" name="selectedDepartmentId" id="selectedDepartmentId" onChange={this.onChangeSelectDropDown} value={this.state.selectedDepartmentId}>
+                                            <option value="">Select Department</option>
+                                            {   
+                                                this.state.departmentList !== null ?
+                                                    this.createDepartmentSelectbox(this.state.departmentList, "id", "id", "name")
+                                                : null
+                                            }
                                         </select>
-                                        <select className="select">
-                                            <option value="Section">Section</option>
-                                            <option value="Section">Section</option>
-                                            <option value="Section">Section</option>
+                                        <select className="select" name="selectedBatchId" id="selectedBatchId" onChange={this.onChangeSelectDropDown} value={this.state.selectedBatchId}>
+                                            <option value="">Select Year</option>
+                                            {   
+                                                this.state.batchList !== null ?
+                                                    this.createBatchSelectbox(this.state.batchList, "id", "id", "batch")
+                                                : null
+                                            }
+                                        </select>
+                                        <select className="select" name="selectedSectionId" id="selectedSectionId" onChange={this.onChangeSelectDropDown} value={this.state.selectedSectionId} >
+                                            <option value="">Select Section</option>
+                                            {   
+                                                this.state.sectionList !== null ?
+                                                    this.createSectionSelectbox(this.state.sectionList, "id", "id", "section")
+                                                : null
+                                            }
                                         </select>
                                         <input type="text" className="input" placeholder="Enter name" name="searchName" onChange={this.onStateChange} value={state.searchName} />
                                     </div>
@@ -467,8 +664,8 @@ export class TeacherSearchPage extends React.Component<any, any> {
                                                     <input type="checkbox" className="checkbox" name="AllCheck" onChange={this.checkAllTeacher} checked={this.state.isAllChecked} />
                                                     <ul>
                                                         <li><i className="fa fa-refresh"></i></li>
-                                                        <li><i className="fa fa-envelope"></i></li>
-                                                        <li><i className="fa fa-trash"></i></li>
+                                                        <a className="fa fa-envelope" href="mailto:"></a>
+                                                        {/* <li><i className="fa fa-trash"></i></li> */}
                                                         <li><i className="fa fa-print"></i></li>
                                                         <li><i className="fa fa-cloud-download"></i></li>
                                                     </ul>
