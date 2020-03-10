@@ -4,6 +4,7 @@ import { parse } from 'query-string';
 // import {TabContent, TabPane, Nav, NavItem, NavLink} from 'reactstrap';
 import "../../../css/studentSearchApp.css";
 import { studentServices } from '../_services/students.service';
+import wsCmsBackendServiceClient from '../../../wsCmsBackendServiceClient';
 
 
 export class StudentSearchPage extends React.Component<any, any> {
@@ -28,7 +29,18 @@ export class StudentSearchPage extends React.Component<any, any> {
             itemsPerPage: 5,
             totalPages: 1,
             currentPage: 0,
-            searchName: ""
+            searchName: "",
+            isAllChecked: false,
+            branchId: null,
+            academicYearId: null,
+            departmentId: null,
+            user: null,
+            departmentList: null,
+            batchList: null,
+            sectionList: null,
+            selectedDepartmentId: null,
+            selectedBatchId: null,
+            selectedSectionId: null,
         };
         this.onClickApply = this.onClickApply.bind(this);
         this.onClickClear = this.onClickClear.bind(this);
@@ -45,14 +57,49 @@ export class StudentSearchPage extends React.Component<any, any> {
         this.onCheckStudent = this.onCheckStudent.bind(this);
         this.checkAllStudent = this.checkAllStudent.bind(this);
         this.createSelectbox = this.createSelectbox.bind(this);
+        this.createDepartmentSelectbox = this.createDepartmentSelectbox.bind(this);
+        this.onChangeSelectDropDown = this.onChangeSelectDropDown.bind(this);
+        this.createBatchSelectbox = this.createBatchSelectbox.bind(this);
+        this.createSectionSelectbox = this.createSectionSelectbox.bind(this);
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.setState({
             isApiCalled: true
         });
+        await studentServices.searchLoggedInUser().then(
+            (response: any) => {
+                this.setState({
+                    user: response
+                });
+            }
+        );
+        await this.registerSocket();
+        await studentServices.searchDepartment().then(
+            (response: any) => {
+                this.setState({
+                    departmentList: response
+                });
+            }
+        );
+        await studentServices.searchBatch().then(
+            (response: any) => {
+                this.setState({
+                    batchList: response
+                });
+            }
+        );
+        await studentServices.searchSection().then(
+            (response: any) => {
+                this.setState({
+                    sectionList: response
+                });
+            }
+        );
         let value = parse(window.location.search).value;
+        console.log("1. window.location.search :---> ",value);
         if (value) {
+            console.log("2. window.location.search :---> ",value);
             studentServices.searchStuent({ name: value }).then(
                 (response: any) => {
                     this.setState({
@@ -71,7 +118,8 @@ export class StudentSearchPage extends React.Component<any, any> {
                 }
             );
         } else {
-            studentServices.searchGetAllStuent().then(
+            console.log("3. window.location.search :---> ",value);
+            studentServices.searchGetAllStudent().then(
                 (response: any) => {
                     this.setState({
                         studentsData: response,
@@ -89,7 +137,35 @@ export class StudentSearchPage extends React.Component<any, any> {
                 }
             );
         }
+        
     }
+
+    registerSocket() {
+        const socket = wsCmsBackendServiceClient.getInstance();
+    
+        socket.onmessage = (response: any) => {
+            let message = JSON.parse(response.data);
+            console.log("studentSearchPage. message received from server ::: ", message);
+            this.setState({
+                branchId: message.selectedBranchId,
+                academicYearId: message.selectedAcademicYearId,
+                departmentId: message.selectedDepartmentId,
+            });
+            console.log("studentSearchPage. branchId: ",this.state.branchId);
+            console.log("studentSearchPage. ayId: ",this.state.academicYearId);  
+            console.log("studentSearchPage. departmentId: ",this.state.departmentId);  
+        }
+    
+        socket.onopen = () => {
+            console.log("studentSearchPage. Opening websocekt connection to cmsbackend. User : ",this.state.user.login);
+            socket.send(this.state.user.login);
+        }
+    
+        window.onbeforeunload = () => {
+            console.log("studentSearchPage. Closing websocket connection with cms backend service");
+        }
+    }
+
 
     onAttendaceChange(e: any) {
         const { name, value } = e.target;
@@ -242,19 +318,35 @@ export class StudentSearchPage extends React.Component<any, any> {
     }
 
     createStudentJSX() {
-        const { studentsData, isApiCalled, currentPage, itemsPerPage } = this.state;
+        const { studentsData, isApiCalled, currentPage, itemsPerPage,branchId, selectedDepartmentId,selectedBatchId ,selectedSectionId } = this.state;
         let retData = [];
         const length = studentsData.length;
         if (length > 0) {
             for (let i = 0; i < length; i++) {
                 const student = studentsData[i];
+                if(branchId === student.branchId){
+                    if(selectedDepartmentId !== null && selectedDepartmentId !== undefined && selectedDepartmentId !== ""){
+                        if(parseInt(selectedDepartmentId,10) !== parseInt(student.departmentId,10)){
+                                continue;
+                        }
+                    }
+                    if(selectedBatchId !== null && selectedBatchId !== undefined && selectedBatchId !== ""){
+                        if(parseInt(selectedBatchId,10) !== parseInt(student.batchId,10)){
+                                continue;
+                        }
+                    }
+                    if(selectedSectionId !== null && selectedSectionId !== undefined && selectedSectionId !== ""){
+                        if(parseInt(selectedSectionId,10) !== parseInt(student.sectionId,10)){
+                                continue;
+                        }
+                    }
                 const pageFactor = Math.floor(i / itemsPerPage);
                 if (pageFactor === currentPage) {
                     retData.push(
                         <div className="contant-row">
                             <div className="row">
                                 <div className="col-xs-6 col-sm-6 col-md-2 image-check">
-                                    <input type="checkbox" className="checkbox" name={student.teacherName} onChange={e => this.onCheckStudent(student, e)} checked={student.isChecked} />
+                                    <input type="checkbox" className="checkbox" name={student.studentName} onChange={e => this.onCheckStudent(student, e)} checked={student.isChecked} />
                                     <span><img src="public/plugins/cms-ui-search-plugin/img/students.png" alt="" /></span>
                                 </div>
                                 <div className="col-xs-12 col-sm-12 col-md-7 name-contant">
@@ -263,7 +355,7 @@ export class StudentSearchPage extends React.Component<any, any> {
                                         <div className="col-12 col-md-4">
                                             <div className="admission_no">
                                                 <span>Admission No:</span>
-                                                <p>{student.id}</p>
+                                                <p>{student.admissionNo}</p>
                                             </div>
                                             <div className="admission_no">
                                                 <span>Student Id:</span>
@@ -273,29 +365,29 @@ export class StudentSearchPage extends React.Component<any, any> {
                                         <div className="col-12 col-md-4">
                                             <div className="admission_no">
                                                 <span>Roll No:</span>
-                                                <p>{student.id}</p>
+                                                <p>{student.rollNo}</p>
                                             </div>
                                             <div className="admission_no">
-                                                <span>Department</span>
-                                                <p>{student.department.name}</p>
+                                                <span>Gender</span>
+                                                <p>{student.sex}</p>
                                             </div>
                                         </div>
                                         <div className="col-12 col-md-4">
                                             <div className="admission_no">
                                                 <span>Class:</span>
-                                                <p>{student.batch.batch}</p>
+                                                <p>{student.batchId}</p>
                                             </div>
                                             <div className="admission_no">
                                                 <span>Section:</span>
-                                                <p>{student.section.section}</p>
+                                                <p>{student.sectionId}</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="col-xs-6 col-sm-12 col-md-3 right-button">
                                     <ul>
-                                        <li><i className="fa fa-envelope"></i></li>
-                                        <li><i className="fa fa-trash"></i></li>
+                                    <li><a className="fa fa-envelope" href={"mailto:"+student.studentPrimaryEmailId}></a></li>
+                                        {/* <li><i className="fa fa-trash"></i></li> */}
                                         <li><i className="fa fa-print"></i></li>
                                         <li><i className="fa fa-cloud-download"></i></li>
                                     </ul>
@@ -305,7 +397,8 @@ export class StudentSearchPage extends React.Component<any, any> {
                     );
                 }
             }
-        } else if (isApiCalled) {
+        }
+     } else if (isApiCalled) {
             retData.push(
                 <div className="text-cetner loading_img">
                     <img src="public/plugins/cms-ui-search-plugin/img/loader.gif" alt="Loader" />
@@ -373,6 +466,66 @@ export class StudentSearchPage extends React.Component<any, any> {
         this.setState({
             studentsData: studentsData
         });
+    }
+
+    onChangeSelectDropDown = (e: any) => {
+        e.preventDefault();
+        const { name, value } = e.nativeEvent.target;
+        this.setState({
+                [name]: value
+        });
+    }
+
+    createDepartmentSelectbox(data: any, value: any, key: any, label: any){
+        const{branchId} = this.state;
+        let retData = [];
+        if(data.length > 0){
+            for(let i=0; i<data.length;i++){
+                let item = data[i];
+                if(branchId !== null && branchId !== undefined){
+                    if(parseInt(branchId, 10) === parseInt(item.branch.id, 10)){
+                        retData.push(
+                            <option value={item[value]} key={item[key]}>{item[label]}</option>
+                        );
+                    }
+                }
+            }
+        } 
+        return retData;
+    }
+    createBatchSelectbox(data: any, value: any, key: any, label: any){
+        const{selectedDepartmentId} = this.state;
+        let retData = [];
+        if(data.length > 0){
+            for(let i=0; i<data.length;i++){
+                let item = data[i];
+                if(selectedDepartmentId !== null && selectedDepartmentId !== undefined){
+                    if(parseInt(selectedDepartmentId, 10) === parseInt(item.department.id, 10)){
+                        retData.push(
+                            <option value={item[value]} key={item[key]}>{item[label]}</option>
+                        );
+                    }
+                }
+            }
+        } 
+        return retData;
+    }
+    createSectionSelectbox(data: any, value: any, key: any, label: any){
+        const{selectedBatchId} = this.state;
+        let retData = [];
+        if(data.length > 0){
+            for(let i=0; i<data.length;i++){
+                let item = data[i];
+                if(selectedBatchId !== null && selectedBatchId !== undefined){
+                    if(parseInt(selectedBatchId, 10) === parseInt(item.batch.id, 10)){
+                        retData.push(
+                            <option value={item[value]} key={item[key]}>{item[label]}</option>
+                        );
+                    }
+                }
+            }
+        } 
+        return retData;
     }
 
     render() {
@@ -458,15 +611,29 @@ export class StudentSearchPage extends React.Component<any, any> {
                             <div className="bg-white students-inner">
                                 <div className="w-100">
                                     <div className="button-section">
-                                        <select className="select">
-                                            <option value="Class">Class</option>
-                                            <option value="Class">Class</option>
-                                            <option value="Class">Class</option>
+                                    <select className="select" name="selectedDepartmentId" id="selectedDepartmentId" onChange={this.onChangeSelectDropDown} value={this.state.selectedDepartmentId}>
+                                            <option value="">Select Department</option>
+                                            {   
+                                                this.state.departmentList !== null ?
+                                                    this.createDepartmentSelectbox(this.state.departmentList, "id", "id", "name")
+                                                : null
+                                            }
                                         </select>
-                                        <select className="select">
-                                            <option value="Section">Section</option>
-                                            <option value="Section">Section</option>
-                                            <option value="Section">Section</option>
+                                        <select className="select" name="selectedBatchId" id="selectedBatchId" onChange={this.onChangeSelectDropDown} value={this.state.selectedBatchId}>
+                                            <option value="">Select Year</option>
+                                            {   
+                                                this.state.batchList !== null ?
+                                                    this.createBatchSelectbox(this.state.batchList, "id", "id", "batch")
+                                                : null
+                                            }
+                                        </select>
+                                        <select className="select" name="selectedSectionId" id="selectedSectionId" onChange={this.onChangeSelectDropDown} value={this.state.selectedSectionId} >
+                                            <option value="">Select Section</option>
+                                            {   
+                                                this.state.sectionList !== null ?
+                                                    this.createSectionSelectbox(this.state.sectionList, "id", "id", "section")
+                                                : null
+                                            }
                                         </select>
                                         <input type="text" className="input" placeholder="Enter name" name="searchName" onChange={this.onStateChange} value={state.searchName} />
                                     </div>
@@ -477,8 +644,8 @@ export class StudentSearchPage extends React.Component<any, any> {
                                                     <input type="checkbox" className="checkbox" name="AllCheck" onChange={this.checkAllStudent} checked={this.state.isAllChecked} />
                                                     <ul>
                                                         <li><i className="fa fa-refresh"></i></li>
-                                                        <li><i className="fa fa-envelope"></i></li>
-                                                        <li><i className="fa fa-trash"></i></li>
+                                                        <a className="fa fa-envelope" href="mailto:"></a>
+                                                        {/* <li><i className="fa fa-trash"></i></li> */}
                                                         <li><i className="fa fa-print"></i></li>
                                                         <li><i className="fa fa-cloud-download"></i></li>
                                                     </ul>

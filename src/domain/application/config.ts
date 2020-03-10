@@ -1,10 +1,10 @@
 // const securityServiceUrl = 'http://localhost:8094';
-const backendServiceUrl = 'http://100.81.5.26:8080';
-const preferenceServiceUrl = 'http://100.81.5.26:9091';
+const backendServiceUrl = 'http://localhost:8080';
+const preferenceServiceUrl = 'http://localhost:9091';
 
-const loggedInUserUrl = 'http://100.81.5.26:3000';
-const webSockWithCmsBackendUrl = 'ws://100.81.5.26:4000/websocket/tracker/websocket';
-const elasticSearchUrl = 'http://100.81.5.26:8092/search';
+const loggedInUserUrl = 'http://localhost:3000';
+const webSockWithCmsBackendUrl = 'ws://localhost:4000/websocket/tracker/websocket';
+const elasticSearchUrl = 'http://localhost:8092/search';
 
 export const config = {
   LOGGED_IN_USER_URL: loggedInUserUrl + '/api/user',
