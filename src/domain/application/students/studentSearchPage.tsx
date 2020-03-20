@@ -375,11 +375,11 @@ export class StudentSearchPage extends React.Component<any, any> {
                                         <div className="col-12 col-md-4">
                                             <div className="admission_no">
                                                 <span>Class:</span>
-                                                <p>{student.batchId}</p>
+                                                <p>{student.batchName}</p>
                                             </div>
                                             <div className="admission_no">
                                                 <span>Section:</span>
-                                                <p>{student.sectionId}</p>
+                                                <p>{student.sectionName}</p>
                                             </div>
                                         </div>
                                     </div>
