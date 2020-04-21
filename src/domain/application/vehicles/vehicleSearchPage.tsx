@@ -2,7 +2,7 @@ import * as React from 'react';
 import { parse } from 'query-string';
 // import { graphql, QueryProps, MutationFunc, compose } from 'react-apollo';
 // import {TabContent, TabPane, Nav, NavItem, NavLink} from 'reactstrap';
-import "../../../css/studentSearchApp.css";
+import "../../../css/StudentSearchApp.css";
 import { vehicleServices } from '../_services/vehicles.service';
 
 export class VehicleSearchPage extends React.Component<any, any> {
